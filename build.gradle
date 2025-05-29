@@ -38,7 +38,7 @@ jacocoTestReport {
     }
 }
 
-def specmatic_version = "2.13.1"
+def specmatic_version = "2.13.2"
 def specmaticKafkaVersion = project.property("specmaticKafkaVersion")
 
 dependencies {
