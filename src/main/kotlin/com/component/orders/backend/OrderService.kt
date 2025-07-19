@@ -43,7 +43,7 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
             error("No order id received in Order API response.")
         }
         val responseBody = jacksonObjectMapper.readValue(response.body, Map::class.java) as Map<String, Any>
-        return responseBody["id"] as Int
+       return (responseBody["id"] as Number).toInt()
     }
 
     fun findProducts(type: String): List<Product> {
@@ -74,7 +74,7 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
             error("No product id received in Product API response.")
         }
         val responseBody = jacksonObjectMapper.readValue(response.body, Map::class.java) as Map<String, Any>
-        return responseBody["id"] as Int
+        return (responseBody["id"] as Number).toInt()
     }
 
     private fun getHeaders(): HttpHeaders {
