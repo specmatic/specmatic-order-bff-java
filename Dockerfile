@@ -1,4 +1,4 @@
-FROM amazoncorretto:17-alpine
+FROM amazoncorretto:21.0.8-alpine
 
 RUN apk add --no-cache git curl bash && \
     rm -rf /var/cache/apk/*
