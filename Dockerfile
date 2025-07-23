@@ -1,6 +1,6 @@
 FROM amazoncorretto:17-alpine
 
-RUN apk add --no-cache git curl bash && \
+RUN apk add --no-cache git curl bash jq && \
     rm -rf /var/cache/apk/*
 
 SHELL ["/bin/bash", "-c"]
