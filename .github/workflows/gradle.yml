@@ -26,20 +26,25 @@ jobs:
     - name: Build BFF project with Gradle
       run: ./gradlew build
 
-    # Set up Node.js for CTRF conversion
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
 
-    - name: List build directory
-      run: ls -R build || true
-    
     # Convert JUnit XML to CTRF format
     - name: Convert JUnit to CTRF
       if: always() # Run even if tests fail
       run: |
         npx junit-to-ctrf build/test-results/test/TEST-com.component.orders.contract.ContractTests.xml --output ctrf/ctrf-report.json
+
+    # Upload CTRF JSON report as artifact
+    - name: Upload CTRF Report
+      uses: actions/upload-artifact@v4
+      if: always() # Run even if tests fail
+      with:
+        name: ctrf-report
+        path: ctrf/*.json
+        retention-days: 5
     
     # Display CTRF test results
     - name: Publish Test Results
