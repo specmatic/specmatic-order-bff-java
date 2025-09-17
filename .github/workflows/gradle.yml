@@ -43,7 +43,7 @@ jobs:
       run: |
         if [ -f "ctrf/ctrf-report.json" ]; then
           # Use jq to replace pipe characters with spaces in test names
-          jq '.results.tests = (.results.tests | map(.name |= gsub("\\|"; " ")))' ctrf/ctrf-report.json > ctrf/ctrf-report-temp.json
+          jq '.results.tests = (.results.tests | map(.name |= gsub("\\|"; "—")))' ctrf/ctrf-report.json > ctrf/ctrf-report-temp.json
           mv ctrf/ctrf-report-temp.json ctrf/ctrf-report.json
           echo "Modified test names in CTRF report"
         else
