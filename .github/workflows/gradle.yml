@@ -82,14 +82,19 @@ jobs:
         echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
         echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
 
-    - name: Run Specmatic Insights Github Build Reporter
-      uses: specmatic/specmatic-insights-build-reporter-github-action@v2.1.0
-      with:
-        org-id: ${{ secrets.SPECMATIC_ORG_ID }}
-        branch-name: ${{ github.ref_name }}
-        repo-name: ${{ github.event.repository.name }}
-        repo-id: ${{ github.repository_id }}
-        repo-url: ${{ github.event.repository.html_url }}
+    - name: Save Specmatic license
+      run: |
+        mkdir -p ~/.specmatic
+        echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
+
+    - name: Run Specmatic Insights Build Reporter
+      run: |
+        docker run \
+          -v ${{ github.workspace }}:/workspace \
+          -v ~/.specmatic:/root/.specmatic \
+          -w /workspace \
+          specmatic/specmatic:latest \
+          send-report
 
     - name: Upload HTML Test Report
       uses: actions/upload-artifact@v4
