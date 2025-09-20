@@ -93,8 +93,12 @@ jobs:
           -v ${{ github.workspace }}:/workspace \
           -v ~/.specmatic:/root/.specmatic \
           -w /workspace \
-          specmatic/specmatic:latest \
-          send-report
+          specmatic/specmatic-reporter \
+          --verbose \
+          --branch-name ${{ github.ref_name }} \
+          --repo-name ${{ github.event.repository.name }} \
+          --repo-id ${{ github.repository_id }} \
+          --repo-url ${{ github.event.repository.html_url }}
 
     - name: Upload HTML Test Report
       uses: actions/upload-artifact@v4
