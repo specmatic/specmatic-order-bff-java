@@ -90,6 +90,7 @@ jobs:
         repo-name: ${{ github.event.repository.name }}
         repo-id: ${{ github.repository_id }}
         repo-url: ${{ github.event.repository.html_url }}
+        specmatic-insights-host: https://insights.specmatic.in
 
     - name: Upload HTML Test Report
       uses: actions/upload-artifact@v4
