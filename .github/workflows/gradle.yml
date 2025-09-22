@@ -91,6 +91,7 @@ jobs:
       run: |
         docker run \
           -v ${{ github.workspace }}:/workspace \
+          -v ${{ github.workspace }}/src/test/resources/specmatic.yaml:/workspace/specmatic.yaml \
           -v ~/.specmatic:/root/.specmatic \
           -w /workspace \
           specmatic/specmatic-reporter \
