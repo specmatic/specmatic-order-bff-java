@@ -53,7 +53,7 @@ dependencies {
     }
     testImplementation("io.specmatic.async:specmatic-async-core-min:$specmaticKafkaVersion")
     testImplementation(
-            'org.assertj:assertj-core:3.27.4',
+            'org.assertj:assertj-core:3.27.6',
             'org.junit.jupiter:junit-jupiter-api:5.13.4'
     )
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
