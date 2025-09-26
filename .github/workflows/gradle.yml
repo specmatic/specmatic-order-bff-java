@@ -95,6 +95,7 @@ jobs:
           -v ~/.specmatic:/root/.specmatic \
           -w /workspace \
           specmatic/specmatic-reporter \
+          send-report \
           --metadata build_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} \
           --branch-name ${{ github.ref_name }} \
           --repo-name ${{ github.event.repository.name }} \
