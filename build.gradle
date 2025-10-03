@@ -35,7 +35,7 @@ jacocoTestReport {
     }
 }
 
-def specmaticVersion = project.property("specmaticVersion")
+def specmaticOpenAPIVersion = project.property("specmaticOpenAPIVersion")
 def specmaticKafkaVersion = project.property("specmaticKafkaVersion")
 
 dependencies {
@@ -47,7 +47,7 @@ dependencies {
     implementation 'javax.validation:validation-api:2.0.1.Final'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testApi "io.specmatic:junit5-support:$specmaticVersion"
+    testApi "io.specmatic.openapi:specmatic-openapi:$specmaticOpenAPIVersion"
     testImplementation("io.specmatic.async:specmatic-kafka:$specmaticKafkaVersion") {
         exclude group: 'io.specmatic.async', module: 'specmatic-async-core'
     }

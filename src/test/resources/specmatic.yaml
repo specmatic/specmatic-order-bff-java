@@ -12,6 +12,7 @@ report:
   formatters:
     - type: text
       layout: table
+    - type: ctrf
   types:
     APICoverage:
       OpenAPI:
