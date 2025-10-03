@@ -36,7 +36,7 @@ jobs:
       if: always() # Run even if tests fail
       with:
         name: ctrf-report
-        path: ctrf/*.json
+        path: build/reports/specmatic/ctrf/*.json
         retention-days: 5
     
     # Display CTRF test results
@@ -44,8 +44,7 @@ jobs:
       uses: ctrf-io/github-test-reporter@v1
       if: always() # Run even if tests fail
       with:
-        report-path: './ctrf/*.json'
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        report-path: './build/reports/specmatic/ctrf/*.json'
 
     - name: Run coverage report
       run: ./gradlew jacocoTestReport
