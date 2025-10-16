@@ -28,14 +28,15 @@ class ContractTests : SpecmaticContractTest {
         @JvmStatic
         @BeforeAll
         fun setUp() {
-            println("Using specmatic kafka - ${VersionInfo.describe()}")
             System.setProperty("host", APPLICATION_HOST)
             System.setProperty("port", APPLICATION_PORT)
             System.setProperty("filter","PATH!=$EXCLUDED_ENDPOINTS")
             // Start Specmatic Http Stub and set the expectations
+            println("Starting HTTP Stub")
             httpStub = createStub(listOf("./src/test/resources/domain_service"), HTTP_STUB_HOST, HTTP_STUB_PORT)
 
             // Start Specmatic Kafka Mock and set the expectations
+            println("Using specmatic kafka - ${VersionInfo.describe()}")
             kafkaMock = KafkaMock.startInMemoryBroker(KAFKA_MOCK_HOST, KAFKA_MOCK_PORT)
             kafkaMock.setExpectations(listOf(Expectation("product-queries", EXPECTED_NUMBER_OF_MESSAGES)))
         }
