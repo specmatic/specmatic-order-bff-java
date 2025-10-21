@@ -6,8 +6,8 @@ import com.github.dockerjava.api.model.Ports
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIf
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.core.ParameterizedTypeReference
@@ -23,10 +23,10 @@ import java.time.Duration
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@Disabled
+@EnabledIf(value = "isNonCIOrLinux", disabledReason = "Run only on Linux in CI; all platforms allowed locally")
 class ContractTestsUsingTestContainer {
     companion object {
-        private const val APPLICATION_HOST = "host.docker.internal"
+        private const val APPLICATION_HOST = "localhost"
         private const val APPLICATION_PORT = 8080
         private const val HTTP_STUB_PORT = 8090
         private const val ACTUATOR_MAPPINGS_ENDPOINT = "http://$APPLICATION_HOST:$APPLICATION_PORT/actuator/mappings"
@@ -35,6 +35,9 @@ class ContractTestsUsingTestContainer {
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
         private const val EXPECTED_NUMBER_OF_MESSAGES = 4
         private val restTemplate: TestRestTemplate = TestRestTemplate()
+
+        @JvmStatic
+        fun isNonCIOrLinux(): Boolean = System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
         @Container
         private val stubContainer: GenericContainer<*> =
@@ -133,7 +136,6 @@ class ContractTestsUsingTestContainer {
                     "--port=$APPLICATION_PORT",
                     "--filter=PATH!=$EXCLUDED_ENDPOINTS",
                 ).withEnv("endpointsAPI", ACTUATOR_MAPPINGS_ENDPOINT)
-                .withNetworkMode("host")
                 .withFileSystemBind(
                     "./src/test/resources/bff",
                     "/usr/src/app/src/test/resources/bff",
@@ -147,6 +149,7 @@ class ContractTestsUsingTestContainer {
                     "/usr/src/app/build/reports/specmatic",
                     BindMode.READ_WRITE,
                 ).waitingFor(Wait.forLogMessage(".*Tests run:.*", 1))
+                .withNetworkMode("host")
                 .withLogConsumer { print(it.utf8String) }
 
         @AfterAll
