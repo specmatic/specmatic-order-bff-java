@@ -1,3 +1,8 @@
 package com.component.orders.models
 
-data class OrderRequest(val productid: Int?, val count: Int?)
+import com.fasterxml.jackson.annotation.JsonIgnore
+import java.util.UUID
+
+data class OrderRequest(val productid: Int?, val count: Int?) {
+    @JsonIgnore val idempotencyKey: String = UUID.randomUUID().toString()
+}

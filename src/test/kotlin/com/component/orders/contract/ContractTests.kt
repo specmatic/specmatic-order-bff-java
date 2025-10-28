@@ -13,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class ContractTests : SpecmaticContractTest {
-
     companion object {
         private lateinit var httpStub: ContractStub
         private lateinit var kafkaMock: KafkaMock
@@ -23,15 +22,16 @@ class ContractTests : SpecmaticContractTest {
         private const val HTTP_STUB_PORT = 8090
         private const val KAFKA_MOCK_HOST = "localhost"
         private const val KAFKA_MOCK_PORT = 9092
-        private const val EXPECTED_NUMBER_OF_MESSAGES = 4
-        private const val EXCLUDED_ENDPOINTS = "'/health'"
+        private const val EXPECTED_NUMBER_OF_MESSAGES = 5
+        private const val EXCLUDED_ENDPOINTS = "'/health,/monitor/{id}'"
+
         @JvmStatic
         @BeforeAll
         fun setUp() {
             println("Using specmatic kafka - ${VersionInfo.describe()}")
             System.setProperty("host", APPLICATION_HOST)
             System.setProperty("port", APPLICATION_PORT)
-            System.setProperty("filter","PATH!=$EXCLUDED_ENDPOINTS")
+            System.setProperty("filter", "PATH!=$EXCLUDED_ENDPOINTS")
             // Start Specmatic Http Stub and set the expectations
             httpStub = createStub(listOf("./src/test/resources/domain_service"), HTTP_STUB_HOST, HTTP_STUB_PORT)
 

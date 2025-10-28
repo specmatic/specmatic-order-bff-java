@@ -1,9 +1,10 @@
 {
+    "transient": true,
+    "delay-in-seconds": 5,
     "http-request": {
         "path": "/products?type=other",
         "method": "GET"
     },
-    "delay-in-seconds": 5,
     "http-response": {
         "status": 200,
         "body": [],

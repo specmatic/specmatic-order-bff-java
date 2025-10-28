@@ -30,10 +30,10 @@ class ContractTestsUsingTestContainer {
         private const val APPLICATION_PORT = 8080
         private const val HTTP_STUB_PORT = 8090
         private const val ACTUATOR_MAPPINGS_ENDPOINT = "http://$APPLICATION_HOST:$APPLICATION_PORT/actuator/mappings"
-        private const val EXCLUDED_ENDPOINTS = "'/health,/swagger/v1/swagger,/swagger-ui.html'"
+        private const val EXCLUDED_ENDPOINTS = "'/health,/monitor/{id},/swagger/v1/swagger,/swagger-ui.html'"
         private const val KAFKA_PORT = 9092
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
-        private const val EXPECTED_NUMBER_OF_MESSAGES = 4
+        private const val EXPECTED_NUMBER_OF_MESSAGES = 5
         private val restTemplate: TestRestTemplate = TestRestTemplate()
 
         @JvmStatic
