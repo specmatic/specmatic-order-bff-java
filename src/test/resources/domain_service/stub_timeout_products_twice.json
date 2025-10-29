@@ -1,6 +1,6 @@
 {
     "transient": true,
-    "delay-in-seconds": 5,
+    "delay-in-seconds": 2,
     "http-request": {
         "path": "/products?type=other",
         "method": "GET"

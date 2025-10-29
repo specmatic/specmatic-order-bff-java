@@ -20,7 +20,7 @@ class Orders(@Autowired val orderBFFService: OrderBFFService) {
             is OrderResponse.OrderConfirmed -> ResponseEntity(orderResponse, HttpStatus.CREATED)
             is OrderResponse.RequestTimedOut -> {
                 val headers = HttpHeaders().apply {
-                    add(HttpHeaders.RETRY_AFTER, "3")
+                    add(HttpHeaders.RETRY_AFTER, orderResponse.retryAfter.toString())
                     add(HttpHeaders.LINK, orderResponse.monitorLink)
                 }
                 ResponseEntity<Void>(headers, HttpStatus.ACCEPTED)

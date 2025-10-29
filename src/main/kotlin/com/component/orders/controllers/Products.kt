@@ -44,7 +44,7 @@ class Products(@Autowired val orderBFFService: OrderBFFService) {
             is ProductResponse.ProductAdded -> ResponseEntity(productResponse, HttpStatus.CREATED)
             is ProductResponse.RequestTimedOut -> {
                 val headers = HttpHeaders().apply {
-                    add(HttpHeaders.RETRY_AFTER, "3")
+                    add(HttpHeaders.RETRY_AFTER, productResponse.retryAfter.toString())
                     add(HttpHeaders.LINK, productResponse.monitorLink)
                 }
                 ResponseEntity<Void>(headers, HttpStatus.ACCEPTED)

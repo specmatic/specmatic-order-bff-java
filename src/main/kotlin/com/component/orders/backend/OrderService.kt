@@ -32,8 +32,8 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
     private val restTemplateWithDefaultTimeout: RestTemplate by lazy {
         val restTemplate = RestTemplate()
         val requestFactory = SimpleClientHttpRequestFactory()
-        requestFactory.setConnectTimeout(4000)
-        requestFactory.setReadTimeout(4000)
+        requestFactory.setConnectTimeout(1000)
+        requestFactory.setReadTimeout(1000)
         restTemplate.setRequestFactory(requestFactory)
         restTemplate
     }

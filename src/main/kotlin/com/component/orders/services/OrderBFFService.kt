@@ -23,7 +23,7 @@ class OrderBFFService {
             val monitorRequest = MonitorRequest(body = orderRequest)
             val monitorId = monitorService.addMonitor(monitorRequest, ::createOrderInternal)
             println("[BFF] Order Creation Request timed out, starting a background monitor with id $monitorId")
-            OrderResponse.RequestTimedOut(monitorId = monitorId)
+            OrderResponse.RequestTimedOut(monitorId = monitorId, retryAfter = 2)
         }
     }
 
@@ -36,8 +36,8 @@ class OrderBFFService {
             val products = orderService.findProducts(type)
             AvailableProductsResponse.FetchedProducts(products = products)
         } catch (_: ResourceAccessException) {
-            println("[BFF] Products Fetch Request timed out, setting Retry-After to 3")
-            AvailableProductsResponse.RequestTimedOut(retryAfter = 3)
+            println("[BFF] Products Fetch Request timed out, setting Retry-After to 2")
+            AvailableProductsResponse.RequestTimedOut(retryAfter = 2)
         }
     }
 
@@ -49,7 +49,7 @@ class OrderBFFService {
             val monitorRequest = MonitorRequest(body = newProduct)
             val monitorId = monitorService.addMonitor(monitorRequest, ::createProductInternal)
             println("[BFF] Product Creation Request timed out, starting a background monitor with id $monitorId")
-            ProductResponse.RequestTimedOut(monitorId = monitorId)
+            ProductResponse.RequestTimedOut(monitorId = monitorId, retryAfter = 2)
         }
     }
 
