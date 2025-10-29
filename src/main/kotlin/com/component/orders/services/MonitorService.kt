@@ -24,12 +24,12 @@ class MonitorService {
 
     @Scheduled(fixedRate = 2000)
     fun <T, U> scheduledMonitorCheck() {
-        println("[BFF] Running monitor check at ${System.currentTimeMillis()}")
-        monitorDatabase.transformMonitors { monitor ->
+        monitorDatabase.transformMonitors { monitorId, monitor ->
             @Suppress("UNCHECKED_CAST")
             monitor as Monitor<T, U>
             if (monitor.response != null) return@transformMonitors monitor
             if (monitor.request == null) return@transformMonitors monitor
+            println("Invoking monitor with id $monitorId")
             val response = monitor.callBack.invoke(monitor.request.body)
             monitor.copy(
                 response = MonitorResponse(

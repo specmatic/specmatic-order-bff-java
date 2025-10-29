@@ -20,9 +20,9 @@ class OrderBFFService {
             val orderId = createOrderInternal(orderRequest)
             OrderResponse.OrderConfirmed(id = orderId.body!!.id)
         } catch (_: ResourceAccessException) {
-            println("[BFF] Order Creation Request timed out, starting a background monitor")
             val monitorRequest = MonitorRequest(body = orderRequest)
             val monitorId = monitorService.addMonitor(monitorRequest, ::createOrderInternal)
+            println("[BFF] Order Creation Request timed out, starting a background monitor with id $monitorId")
             OrderResponse.RequestTimedOut(monitorId = monitorId)
         }
     }
@@ -46,9 +46,9 @@ class OrderBFFService {
             val productResponse = createProductInternal(newProduct)
             ProductResponse.ProductAdded(id = productResponse.body!!.id)
         } catch (_: ResourceAccessException) {
-            println("[BFF] Product Creation Request timed out, starting a background monitor")
             val monitorRequest = MonitorRequest(body = newProduct)
             val monitorId = monitorService.addMonitor(monitorRequest, ::createProductInternal)
+            println("[BFF] Product Creation Request timed out, starting a background monitor with id $monitorId")
             ProductResponse.RequestTimedOut(monitorId = monitorId)
         }
     }

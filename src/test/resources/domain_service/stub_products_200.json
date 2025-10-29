@@ -9,7 +9,7 @@
       {
         "id": "$(data.type[PRODUCT_TYPE].productId)",
         "name": "$(data.type[PRODUCT_TYPE].name)",
-        "inventory": "(Inventory)",
+        "inventory": "(number)",
         "type": "$(PRODUCT_TYPE)"
       }
     ],

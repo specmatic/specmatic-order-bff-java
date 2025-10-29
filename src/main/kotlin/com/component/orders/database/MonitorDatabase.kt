@@ -20,9 +20,9 @@ class MonitorDatabase {
         return monitors[monitorId] ?: throw IllegalArgumentException("Monitor with id $monitorId doesn't exist")
     }
 
-    fun transformMonitors(transform: (Monitor<*, *>) -> Monitor<*, *>) {
+    fun transformMonitors(transform: (Int, Monitor<*, *>) -> Monitor<*, *>) {
         monitors.forEach { (id, monitor) ->
-            val updatedMonitor = transform(monitor)
+            val updatedMonitor = transform(id, monitor)
             monitors[id] = updatedMonitor
         }
     }
