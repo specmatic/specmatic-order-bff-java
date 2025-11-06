@@ -1,8 +1,8 @@
 package com.component.orders.models
 
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Positive
 import java.util.concurrent.atomic.AtomicInteger
-import javax.validation.constraints.NotNull
-import javax.validation.constraints.Positive
 
 data class Product(
     @field:NotNull val name: String = "",
