@@ -1,7 +1,7 @@
-# Specmatic Sample: Springboot BFF calling Domain API
+# Specmatic Sample: SpringBoot BFF calling Domain API
 
 * [Specmatic Website](https://specmatic.io)
-* [Specmatic Documentation](https://specmatic.io/documentation.html)
+* [Specmatic Documentation](https://docs.specmatic.io)
 
 This sample project demonstrates how we can practice contract-driven development and contract testing in a SpringBoot (Kotlin) application that depends on an external domain service and Kafka. Here, Specmatic is used to stub calls to domain API service based on its OpenAPI spec and mock Kafka based on its AsyncAPI spec.
 
@@ -27,14 +27,50 @@ A typical web application might look like this. We can use Specmatic to practice
 ## Run Tests
 
 This will start the specmatic stub server for domain api and kafka mock using the information in specmatic.yaml and run contract tests using Specmatic.
-1. Using gradle -
-   ```shell
-     ./gradlew test
-   ```
-2. Using docker -
-   - Start Docker Desktop
-   - Run the application `./gradlew bootRun`
-   - Run the tests `docker run --network host -v "$PWD/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "$PWD/build/reports/specmatic:/usr/src/app/build/reports/specmatic"  specmatic/specmatic test --port=8080 --host=host.docker.internal`
+
+### 1. Using Gradle:
+
+For Unix based systems and Windows Powershell:
+```shell
+./gradlew test
+```
+
+For Windows Command Prompt:
+```shell
+gradlew test
+```
+
+### 2. Using Docker:
+
+For Unix based systems and Windows Powershell, execute the following one-by-one in separate terminals:
+```shell
+# Start the backend service
+./gradlew bootRun
+
+# Start the domain api mock server
+docker run --rm -p 8090:9000 -v "$(pwd)/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "$(pwd)/src/test/resources/domain_service:/usr/src/app/domain_service" specmatic/specmatic virtualize --examples /usr/src/app/domain_service
+
+# Start the kafka mock server
+docker run --rm -p 9092:9092 -p 2181:2181 -v "$(pwd)/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" specmatic/specmatic-kafka virtualize
+
+# Run contract tests
+docker run --rm --network host -v "$(pwd)/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "$(pwd)/src/test/resources/bff:/usr/src/app/bff" -v "$(pwd)/build/reports/specmatic:/usr/src/app/build/reports/specmatic" specmatic/specmatic test --port=8080 --examples /usr/src/app/bff
+```
+
+For Windows Command Prompt, execute the following one-by-one in separate terminals:
+```shell
+# Start the backend service
+gradlew bootRun
+
+# Start the domain api mock server
+docker run --rm -p 8090:9000 -v "%cd%/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "%cd%/src/test/resources/domain_service:/usr/src/app/domain_service" specmatic/specmatic virtualize --examples /usr/src/app/domain_service
+
+# Start the kafka mock server
+docker run --rm -p 9092:9092 -p 2181:2181 -v "%cd%/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" specmatic/specmatic-kafka virtualize
+
+# Run contract tests
+docker run --rm --network host -v "%cd%/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "%cd%/src/test/resources/bff:/usr/src/app/bff" -v "%cd%/build/reports/specmatic:/usr/src/app/build/reports/specmatic" specmatic/specmatic test --port=8080 --examples /usr/src/app/bff
+```
 
 # Break down each component to understand what is happening
 
@@ -46,28 +82,9 @@ This will start the specmatic stub server for domain api and kafka mock using th
  
 ### Start the dependent components
 
-1. Start domain api stub server
-
-```shell
-docker run -v "$PWD/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "$PWD/src/test/resources/domain_service:/usr/src/app/domain_service" -p 8090:9000 specmatic/specmatic stub --data /usr/src/app/domain_service
-```
-
-2. Start Kafka stub server
-
-```shell
-docker run -p 9092:9092 -p 2181:2181 -v "$PWD/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" specmatic/specmatic-kafka virtualize
-```
-
-## Start BFF Server
-This will start the springboot BFF server
-```shell
-./gradlew bootRun
-```
+Follow the instructions provided in the [Run Tests](#2-using-docker) using Docker, but skip the `Run contract tests` step
 
 ## Test if everything is working
-
-Note: For Windows OS, add `.exe` extension to curl command on PowerShell or use `cmd.exe` instead.
-
 ```shell
 curl -H "pageSize: 10" "http://localhost:8080/findAvailableProducts"
 ```
