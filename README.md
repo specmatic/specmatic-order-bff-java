@@ -22,7 +22,8 @@ A typical web application might look like this. We can use Specmatic to practice
 ## Tech
 1. Spring boot
 2. Specmatic
-3. Specmatic Beta extension (for mocking Kafka)
+3. Specmatic-Kafka
+4. Docker Desktop (to run contract test and mock servers using test containers)
 
 ## Run Tests
 
@@ -72,19 +73,13 @@ docker run --rm -p 9092:9092 -p 2181:2181 -v "%cd%/src/test/resources/specmatic.
 docker run --rm --network host -v "%cd%/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "%cd%/src/test/resources/bff:/usr/src/app/bff" -v "%cd%/build/reports/specmatic:/usr/src/app/build/reports/specmatic" specmatic/specmatic test --port=8080 --examples /usr/src/app/bff
 ```
 
-# Break down each component to understand what is happening
-
-### Prerequisites
-
-1. Docker Desktop
-2. Java and Gradle
-3. If you are on a Windows OS, please use PowerShell.
+## Starting Service and Mocks for manual testing
  
 ### Start the dependent components
 
 Follow the instructions provided in the [Run Tests](#2-using-docker) using Docker, but skip the `Run contract tests` step
 
-## Test if everything is working
+### Test if everything is working
 ```shell
 curl -H "pageSize: 10" "http://localhost:8080/findAvailableProducts"
 ```
