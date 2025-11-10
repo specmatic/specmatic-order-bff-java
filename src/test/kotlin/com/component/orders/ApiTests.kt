@@ -142,7 +142,7 @@ class ApiTests {
         )
 
         assert(response.statusCode == HttpStatus.CREATED)
-        assertThat(response.body["id"] as Int).isEqualTo(10)
+        assertThat(response?.body?.get("id") as? Int).isEqualTo(10)
     }
 
     private fun String.toMap(): Map<*, *> {
