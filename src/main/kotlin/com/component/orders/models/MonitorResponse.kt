@@ -1,8 +1,8 @@
 package com.component.orders.models
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import jakarta.validation.constraints.NotNull
 import org.springframework.http.ResponseEntity
-import javax.validation.constraints.NotNull
 
 data class Monitor<T, U>(
     val request: MonitorRequest<T>? = null,

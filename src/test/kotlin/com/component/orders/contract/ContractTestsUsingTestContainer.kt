@@ -26,7 +26,7 @@ import java.time.Duration
 @EnabledIf(value = "isNonCIOrLinux", disabledReason = "Run only on Linux in CI; all platforms allowed locally")
 class ContractTestsUsingTestContainer {
     companion object {
-        private const val APPLICATION_HOST = "localhost"
+        private const val APPLICATION_HOST = "host.docker.internal"
         private const val APPLICATION_PORT = 8080
         private const val HTTP_STUB_PORT = 8090
         private const val ACTUATOR_MAPPINGS_ENDPOINT = "http://$APPLICATION_HOST:$APPLICATION_PORT/actuator/mappings"
@@ -149,7 +149,7 @@ class ContractTestsUsingTestContainer {
                     "/usr/src/app/build/reports/specmatic",
                     BindMode.READ_WRITE,
                 ).waitingFor(Wait.forLogMessage(".*Tests run:.*", 1))
-                .withNetworkMode("host")
+                .withExtraHost("host.docker.internal", "host-gateway")
                 .withLogConsumer { print(it.utf8String) }
 
         @AfterAll
