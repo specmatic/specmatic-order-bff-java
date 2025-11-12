@@ -1,7 +1,7 @@
 version: 2
 contracts:
   - git:
-      matchBranch: true
+      branch: main
       url: https://github.com/specmatic/specmatic-order-contracts.git
     provides:
       - io/specmatic/examples/store/openapi/product_search_bff_v5.yaml
