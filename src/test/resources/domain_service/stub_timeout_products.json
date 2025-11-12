@@ -2,8 +2,11 @@
     "transient": true,
     "delay-in-seconds": 2,
     "http-request": {
-        "path": "/products?type=other",
-        "method": "GET"
+        "path": "/products",
+        "method": "GET",
+        "query": {
+          "type": "$match(exact:other, times:2)"
+        }
     },
     "http-response": {
         "status": 200,

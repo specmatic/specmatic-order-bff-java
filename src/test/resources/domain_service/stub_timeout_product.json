@@ -10,9 +10,9 @@
       "Idempotency-Key": "(uuid)"
     },
     "body": {
-      "name": "(string)",
-      "inventory": "(number)",
-      "type": "other"
+      "name": "UniqueName",
+      "type": "$match(dataType:ProductType, value:each, times:1)",
+      "inventory": "$match(dataType:ProductInventory, value:each, times:1)"
     }
   },
   "http-response": {

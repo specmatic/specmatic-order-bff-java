@@ -7,7 +7,7 @@
         "Content-Type": "application/json"
       },
       "body": {
-        "type": "other"
+        "name": "UniqueName"
       }
     },
     "http-response": {
