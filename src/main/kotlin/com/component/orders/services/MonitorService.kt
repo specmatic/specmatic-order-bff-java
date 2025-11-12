@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.net.SocketTimeoutException
 import java.util.concurrent.atomic.AtomicInteger
 
 @Service
@@ -45,8 +46,11 @@ class MonitorService {
                         },
                     ),
                 )
+            } catch (e: SocketTimeoutException) {
+                println("[BFF] Monitor $monitorId timed out: ${e.message}")
+                monitor
             } catch (e: Throwable) {
-                println("[BFF] Monitor $monitorId timed out for id $monitorId: ${e.message}")
+                println("[BFF] Monitor $monitorId failed with error: ${e.message}")
                 monitor
             }
         }

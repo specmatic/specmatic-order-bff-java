@@ -40,7 +40,7 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
 
     fun createOrder(orderRequest: OrderRequest): ResponseEntity<Id> {
         val apiUrl = orderAPIUrl + "/" + API.CREATE_ORDER.url
-        val headers = getHeaders().apply { add("Idempotency-Key", orderRequest.idempotencyKey) }
+        val headers = getHeaders().apply { add("Idempotency-Key", orderRequest.orderIdempotencyKey) }
         val requestEntity = HttpEntity(orderRequest, headers)
         val response = restTemplateWithDefaultTimeout.exchange(
             apiUrl,

@@ -2,6 +2,7 @@ package com.component.orders.controllers
 
 import com.component.orders.models.Monitor
 import com.component.orders.services.MonitorService
+import jakarta.validation.constraints.NotNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -18,7 +19,7 @@ class MonitorController {
     lateinit var monitorService: MonitorService
 
     @GetMapping("/monitor/{id}", produces = [MediaType.APPLICATION_JSON_VALUE])
-    fun retrieveMonitorStatus(@PathVariable("id") monitorId: Int): ResponseEntity<Monitor<*, *>> {
+    fun retrieveMonitorStatus(@NotNull @PathVariable("id", required = true) monitorId: Int): ResponseEntity<Monitor<*, *>> {
         val monitor = monitorService.retrieveMonitor(monitorId)
         return ResponseEntity(monitor, HttpStatus.OK)
     }

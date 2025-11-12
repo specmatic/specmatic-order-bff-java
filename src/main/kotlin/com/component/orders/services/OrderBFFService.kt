@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.ResourceAccessException
+import java.net.SocketTimeoutException
 
 @Service
 class OrderBFFService {
@@ -19,7 +20,8 @@ class OrderBFFService {
         return try {
             val orderId = createOrderInternal(orderRequest)
             OrderResponse.OrderConfirmed(id = orderId.body!!.id)
-        } catch (_: ResourceAccessException) {
+        } catch (e: ResourceAccessException) {
+            if (e.cause !is SocketTimeoutException) throw e
             val monitorRequest = MonitorRequest(body = orderRequest)
             val monitorId = monitorService.addMonitor(monitorRequest, ::createOrderInternal)
             println("[BFF] Order Creation Request timed out, starting a background monitor with id $monitorId")
@@ -35,7 +37,8 @@ class OrderBFFService {
         return try {
             val products = orderService.findProducts(type)
             AvailableProductsResponse.FetchedProducts(products = products)
-        } catch (_: ResourceAccessException) {
+        } catch (e: ResourceAccessException) {
+            if (e.cause !is SocketTimeoutException) throw e
             println("[BFF] Products Fetch Request timed out, setting Retry-After to 2")
             AvailableProductsResponse.RequestTimedOut(retryAfter = 2)
         }
@@ -45,7 +48,8 @@ class OrderBFFService {
         return try {
             val productResponse = createProductInternal(newProduct)
             ProductResponse.ProductAdded(id = productResponse.body!!.id)
-        } catch (_: ResourceAccessException) {
+        } catch (e: ResourceAccessException) {
+            if (e.cause !is SocketTimeoutException) throw e
             val monitorRequest = MonitorRequest(body = newProduct)
             val monitorId = monitorService.addMonitor(monitorRequest, ::createProductInternal)
             println("[BFF] Product Creation Request timed out, starting a background monitor with id $monitorId")
