@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.SimpleClientHttpRequestFactory
@@ -53,15 +55,15 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
         return response
     }
 
-    fun findProducts(type: String): List<Product> {
-        val products = fetchFirstProductFromBackendAPI(type)
+    fun findProducts(type: ProductType, pageSize: Int): List<Product> {
+        val products = fetchProductsFromBackendAPI(type, pageSize).take(1)
         val producer = getKafkaProducer()
 
         products.forEach {
             val productMessage = ProductMessage(it.id, it.name, it.inventory)
             producer.send(ProducerRecord(
                 kafkaTopic,
-                jacksonObjectMapper.writeValueAsString(productMessage)
+                jacksonObjectMapper.writeValueAsString(productMessage),
             ))
         }
 
@@ -91,24 +93,22 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
         return headers
     }
 
-    private fun fetchFirstProductFromBackendAPI(type: String): List<Product> {
+    private fun fetchProductsFromBackendAPI(type: ProductType, pageSize: Int): List<Product> {
         val apiUrl = orderAPIUrl + "/" + API.LIST_PRODUCTS.url + "?type=$type"
-        val response = restTemplateWithDefaultTimeout.getForEntity(apiUrl, List::class.java)
-        (response.body as List<*>).any { (it as Map<String, *>)["type"] != type }.let {
-            if (it) {
-                throw IllegalStateException("Product type mismatch")
-            }
+        val headers = getHeaders().apply { add("pageSize", pageSize.toString()) }
+        val entity = HttpEntity<Any>(headers)
+        val response = restTemplateWithDefaultTimeout.exchange(
+            apiUrl,
+            HttpMethod.GET,
+            entity,
+            object : ParameterizedTypeReference<List<Product>>() {},
+        )
+
+        response.body?.forEach {
+            if (it.type != type) throw IllegalStateException("Product type mismatch, expected all products to have type: $type")
         }
 
-        return response.body.take(1).map {
-            val product = it as Map<*, *>
-            Product(
-                product["name"].toString(),
-                product["type"].toString(),
-                product["inventory"].toString().toInt(),
-                product["id"].toString().toInt(),
-            )
-        }
+        return response.body
     }
 
     private fun getKafkaProducer(): KafkaProducer<String, String> {

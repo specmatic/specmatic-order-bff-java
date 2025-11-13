@@ -33,9 +33,9 @@ class OrderBFFService {
         return orderService.createOrder(orderRequest)
     }
 
-    fun findProducts(type: String): AvailableProductsResponse{
+    fun findProducts(type: ProductType, pageSize: Int): AvailableProductsResponse{
         return try {
-            val products = orderService.findProducts(type)
+            val products = orderService.findProducts(type, pageSize)
             AvailableProductsResponse.FetchedProducts(products = products)
         } catch (e: ResourceAccessException) {
             if (e.cause !is SocketTimeoutException) throw e

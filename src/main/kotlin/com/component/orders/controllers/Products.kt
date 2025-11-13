@@ -3,6 +3,7 @@ package com.component.orders.controllers
 import com.component.orders.models.AvailableProductsResponse
 import com.component.orders.models.NewProduct
 import com.component.orders.models.ProductResponse
+import com.component.orders.models.ProductType
 import com.component.orders.services.OrderBFFService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
@@ -24,10 +25,10 @@ import org.springframework.web.bind.annotation.RestController
 class Products(@Autowired val orderBFFService: OrderBFFService) {
     @GetMapping("/findAvailableProducts", produces = [MediaType.APPLICATION_JSON_VALUE])
     fun findAvailableProducts(
-        @Valid @RequestParam(name = "type", required = false, defaultValue = "gadget") type: String,
+        @Valid @RequestParam(name = "type", required = false, defaultValue = "gadget") type: ProductType = ProductType.gadget,
         @Valid @Positive @RequestHeader(name = "pageSize", required = true) pageSize: Int,
     ): ResponseEntity<*> {
-        return when (val productsResponse = orderBFFService.findProducts(type)) {
+        return when (val productsResponse = orderBFFService.findProducts(type, pageSize)) {
             is AvailableProductsResponse.FetchedProducts -> ResponseEntity(productsResponse.products, HttpStatus.OK)
             is AvailableProductsResponse.RequestTimedOut -> {
                 val headers = HttpHeaders().apply {
