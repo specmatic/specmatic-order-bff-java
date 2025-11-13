@@ -3,24 +3,61 @@ package com.component.orders.services
 import com.component.orders.backend.OrderService
 import com.component.orders.models.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.client.ResourceAccessException
+import java.net.SocketTimeoutException
 
 @Service
 class OrderBFFService {
-
     @Autowired
     lateinit var orderService: OrderService
 
+    @Autowired
+    lateinit var monitorService: MonitorService
+
     fun createOrder(orderRequest: OrderRequest): OrderResponse {
-        val orderId = orderService.createOrder(orderRequest)
-        return OrderResponse(id = orderId)
+        return try {
+            val orderId = createOrderInternal(orderRequest)
+            OrderResponse.OrderConfirmed(id = orderId.body!!.id)
+        } catch (e: ResourceAccessException) {
+            if (e.cause !is SocketTimeoutException) throw e
+            val monitorRequest = MonitorRequest(body = orderRequest)
+            val monitorId = monitorService.addMonitor(monitorRequest, ::createOrderInternal)
+            println("[BFF] Order Creation Request timed out, starting a background monitor with id $monitorId")
+            OrderResponse.RequestTimedOut(monitorId = monitorId, retryAfter = 2)
+        }
     }
 
-    fun findProducts(type: String): List<Product> {
-        return orderService.findProducts(type)
+    private fun createOrderInternal(orderRequest: OrderRequest): ResponseEntity<Id> {
+        return orderService.createOrder(orderRequest)
     }
 
-    fun createProduct(newProduct: NewProduct): Id {
-        return Id(orderService.createProduct(newProduct))
+    fun findProducts(type: ProductType, pageSize: Int): AvailableProductsResponse{
+        return try {
+            val products = orderService.findProducts(type, pageSize)
+            AvailableProductsResponse.FetchedProducts(products = products)
+        } catch (e: ResourceAccessException) {
+            if (e.cause !is SocketTimeoutException) throw e
+            println("[BFF] Products Fetch Request timed out, setting Retry-After to 2")
+            AvailableProductsResponse.RequestTimedOut(retryAfter = 2)
+        }
+    }
+
+    fun createProduct(newProduct: NewProduct): ProductResponse {
+        return try {
+            val productResponse = createProductInternal(newProduct)
+            ProductResponse.ProductAdded(id = productResponse.body!!.id)
+        } catch (e: ResourceAccessException) {
+            if (e.cause !is SocketTimeoutException) throw e
+            val monitorRequest = MonitorRequest(body = newProduct)
+            val monitorId = monitorService.addMonitor(monitorRequest, ::createProductInternal)
+            println("[BFF] Product Creation Request timed out, starting a background monitor with id $monitorId")
+            ProductResponse.RequestTimedOut(monitorId = monitorId, retryAfter = 2)
+        }
+    }
+
+    private fun createProductInternal(newProduct: NewProduct): ResponseEntity<Id> {
+        return orderService.createProduct(newProduct)
     }
 }

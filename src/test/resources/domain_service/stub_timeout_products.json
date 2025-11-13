@@ -1,0 +1,16 @@
+{
+    "transient": true,
+    "delay-in-seconds": 2,
+    "http-request": {
+        "path": "/products",
+        "method": "GET",
+        "query": {
+          "type": "$match(exact:other, times:2)"
+        }
+    },
+    "http-response": {
+        "status": 200,
+        "body": [],
+        "status-text": "OK"
+    }
+}

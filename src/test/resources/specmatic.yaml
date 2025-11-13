@@ -4,9 +4,9 @@ contracts:
       branch: main
       url: https://github.com/specmatic/specmatic-order-contracts.git
     provides:
-      - io/specmatic/examples/store/openapi/product_search_bff_v4.yaml
+      - io/specmatic/examples/store/openapi/product_search_bff_v5.yaml
     consumes:
-      - io/specmatic/examples/store/openapi/api_order_v4.yaml
+      - io/specmatic/examples/store/openapi/api_order_v5.yaml
       - io/specmatic/examples/store/asyncapi/kafka.yaml
 report:
   formatters:
