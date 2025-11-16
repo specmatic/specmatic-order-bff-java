@@ -42,7 +42,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.kafka:spring-kafka:3.3.7'
+    implementation 'org.springframework.kafka:spring-kafka:3.3.10'
     implementation 'jakarta.validation:jakarta.validation-api:3.1.1'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
