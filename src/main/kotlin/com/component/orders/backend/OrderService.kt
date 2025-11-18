@@ -2,9 +2,8 @@ package com.component.orders.backend
 
 import com.component.orders.models.*
 import com.component.orders.models.messages.ProductMessage
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpEntity
@@ -13,23 +12,26 @@ import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.SimpleClientHttpRequestFactory
+import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.lang.IllegalStateException
 import java.util.*
 
 @Service
-class OrderService(private val jacksonObjectMapper: ObjectMapper) {
+class OrderService(
+    private val jacksonObjectMapper: ObjectMapper,
+    private val kafkaTemplate: KafkaTemplate<String, String>
+) {
     private val authToken = "API-TOKEN-SPEC"
 
     @Value("\${order.api.url}")
     lateinit var orderAPIUrl: String
 
-    @Value("\${kafka.bootstrap-servers}")
-    lateinit var kafkaBootstrapServers: String
-
-    @Value("\${kafka.topic}")
-    lateinit var kafkaTopic: String
+    @Value("\${kafka.topic.product-queries}")
+    lateinit var productQueriesTopic: String
 
     private val restTemplateWithDefaultTimeout: RestTemplate by lazy {
         val restTemplate = RestTemplate()
@@ -52,22 +54,16 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
         )
 
         if (response.body == null) error("No order id received in Order API response.")
+        sendNewOrdersEvent(response.body.id)
         return response
     }
 
     fun findProducts(type: ProductType, pageSize: Int): List<Product> {
         val products = fetchProductsFromBackendAPI(type, pageSize).take(1)
-        val producer = getKafkaProducer()
-
         products.forEach {
             val productMessage = ProductMessage(it.id, it.name, it.inventory)
-            producer.send(ProducerRecord(
-                kafkaTopic,
-                jacksonObjectMapper.writeValueAsString(productMessage),
-            ))
+            kafkaTemplate.send(productQueriesTopic, jacksonObjectMapper.writeValueAsString(productMessage))
         }
-
-        producer.close()
         return products
     }
 
@@ -84,6 +80,20 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
 
         if (response.body == null) error("No product id received in Product API response.")
         return response
+    }
+
+    @KafkaListener(topics = ["wip-orders"])
+    fun run(wipOrder: String) {
+        println("[OrderService] Received message on topic 'wip-orders' - $wipOrder")
+
+        val wipOrderMap = try {
+            ObjectMapper().apply {
+                configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true)
+            }.readValue(wipOrder, Map::class.java)
+        } catch(e: Exception) {
+            throw e
+        }
+        initiateOrderDelivery(wipOrderMap.get("id") as Int)
     }
 
     private fun getHeaders(): HttpHeaders {
@@ -111,12 +121,23 @@ class OrderService(private val jacksonObjectMapper: ObjectMapper) {
         return response.body
     }
 
-    private fun getKafkaProducer(): KafkaProducer<String, String> {
-        val props = Properties()
-        println("kafkaBootstrapServers: $kafkaBootstrapServers")
-        props["bootstrap.servers"] = kafkaBootstrapServers
-        props["key.serializer"] = "org.apache.kafka.common.serialization.StringSerializer"
-        props["value.serializer"] = "org.apache.kafka.common.serialization.StringSerializer"
-        return KafkaProducer<String, String>(props)
+    private fun sendNewOrdersEvent(orderId: Int) {
+        println("[OrderService] Sending NewOrdersEvent for orderId '$orderId' on new-orders topic")
+        kafkaTemplate.send(
+            "new-orders",
+            ObjectMapper().writeValueAsString(
+                NewOrderEvent.from(orderId)
+            )
+        )
+    }
+
+    private fun initiateOrderDelivery(orderId: Int) {
+        println("[OrderService] Initiating order delivery  for orderId '$orderId'")
+        kafkaTemplate.send(
+            "out-for-delivery-orders",
+            ObjectMapper().writeValueAsString(
+                InitiateOrderDeliveryEvent.from(orderId)
+            )
+        )
     }
 }
