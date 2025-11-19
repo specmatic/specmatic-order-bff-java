@@ -1,3 +1,9 @@
 package com.component.orders.models
 
-data class OrderResponse(val id: Int)
+sealed interface OrderResponse {
+    data class OrderConfirmed(val id: Int): OrderResponse
+
+    data class RequestTimedOut(val monitorId: Int, val retryAfter: Int): OrderResponse {
+        val monitorLink: String = "</monitor/$monitorId>;rel=related;title=monitor"
+    }
+}

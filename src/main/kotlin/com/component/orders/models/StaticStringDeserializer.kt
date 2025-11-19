@@ -9,10 +9,7 @@ class StrictStringDeserializer : StringDeserializer() {
     @Throws(IOException::class)
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String? {
         val token = p.currentToken()
-        if (token.isBoolean
-            || token.isNumeric
-            || !token.toString().equals("VALUE_STRING", ignoreCase = true)
-        ) {
+        if (token.isBoolean || token.isNumeric || !token.toString().equals("VALUE_STRING", ignoreCase = true)) {
             ctxt.reportInputMismatch<Any>(String::class.java, "%s is not a `String` value!", token.toString())
             return null
         }

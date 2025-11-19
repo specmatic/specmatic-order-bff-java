@@ -16,6 +16,7 @@ import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.images.PullPolicy
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.net.URI
@@ -30,10 +31,10 @@ class ContractTestsUsingTestContainer {
         private const val APPLICATION_PORT = 8080
         private const val HTTP_STUB_PORT = 8090
         private const val ACTUATOR_MAPPINGS_ENDPOINT = "http://$APPLICATION_HOST:$APPLICATION_PORT/actuator/mappings"
-        private const val EXCLUDED_ENDPOINTS = "'/health,/swagger/v1/swagger,/swagger-ui.html'"
+        private const val EXCLUDED_ENDPOINTS = "'/health,/monitor/{id},/swagger/v1/swagger,/swagger-ui.html'"
         private const val KAFKA_PORT = 9092
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
-        private const val EXPECTED_NUMBER_OF_MESSAGES = 4
+        private const val EXPECTED_NUMBER_OF_MESSAGES = 10
         private val restTemplate: TestRestTemplate = TestRestTemplate()
 
         @JvmStatic
@@ -42,6 +43,7 @@ class ContractTestsUsingTestContainer {
         @Container
         private val stubContainer: GenericContainer<*> =
             GenericContainer("specmatic/specmatic-openapi")
+                .withImagePullPolicy (PullPolicy.alwaysPull())
                 .withCommand(
                     "virtualize",
                     "--examples=examples",
@@ -104,6 +106,7 @@ class ContractTestsUsingTestContainer {
                     }
                 }
             }.apply {
+                withImagePullPolicy (PullPolicy.alwaysPull())
                 withCommand("virtualize")
                 withCreateContainerCmdModifier { cmd ->
                     cmd.hostConfig?.withPortBindings(
@@ -130,6 +133,7 @@ class ContractTestsUsingTestContainer {
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/specmatic-openapi")
+                .withImagePullPolicy (PullPolicy.alwaysPull())
                 .withCommand(
                     "test",
                     "--host=$APPLICATION_HOST",

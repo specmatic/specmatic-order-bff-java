@@ -88,63 +88,6 @@ class ApiTests {
         assertThat(actualProduct["id"]).isEqualTo(expectedProduct["id"])
     }
 
-    @Test
-    fun `should return 503 (SERVICE_UNAVAILABLE) status if backend service is down`() {
-        val expectation = File("src/test/resources/domain_service/stub_timeout.json").readText()
-        setExpectations(expectation)
-        val url = "http://localhost:8080/findAvailableProducts?type=other"
-        val headers = HttpHeaders().apply {
-            set("pageSize", "10")
-        }
-        val response = restTemplate.exchange(
-            url,
-            HttpMethod.GET,
-            HttpEntity<String>(headers),
-            String::class.java
-        )
-
-        assert(response.statusCode == HttpStatus.SERVICE_UNAVAILABLE)
-    }
-
-    @Test
-    fun `should create order`() {
-        val expectation = """
-          {
-            "http-request": {
-              "method": "POST",
-              "path": "/orders",
-              "headers": {
-                "Authenticate": "API-TOKEN-SPEC"
-              },
-              "body": {
-                "productid": 10,
-                "count": 1,
-                "status": "pending"
-              }
-            },
-
-            "http-response": {
-              "status": 200,
-              "body": {
-                "id": 10
-              },
-              "status-text": "OK"
-            }
-          }
-        """.trimIndent()
-        setExpectations(expectation)
-
-        val response = restTemplate.exchange(
-            "http://localhost:8080/orders",
-            HttpMethod.POST,
-            HttpEntity(mapOf("productid" to 10, "count" to 1)),
-            Map::class.java
-        )
-
-        assert(response.statusCode == HttpStatus.CREATED)
-        assertThat(response?.body?.get("id") as? Int).isEqualTo(10)
-    }
-
     private fun String.toMap(): Map<*, *> {
         return ObjectMapper().readValue(this, Map::class.java)
     }

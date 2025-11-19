@@ -1,0 +1,16 @@
+{
+  "http-request": {
+    "path": "/findAvailableProducts?type=other",
+    "method": "GET",
+    "headers": {
+      "pageSize": "20"
+    }
+  },
+  "http-response": {
+    "status": 429,
+    "headers": {
+      "Content-Type": "application/json",
+      "Retry-After": "2"
+    }
+  }
+}
