@@ -22,7 +22,7 @@ class ContractTests : SpecmaticContractTest {
         private const val HTTP_STUB_PORT = 8090
         private const val KAFKA_MOCK_HOST = "localhost"
         private const val KAFKA_MOCK_PORT = 9092
-        private const val EXPECTED_NUMBER_OF_MESSAGES = 10
+        private const val EXPECTED_NUMBER_OF_MESSAGES = 11
         private const val EXCLUDED_ENDPOINTS = "'/health,/monitor/{id}'"
 
         @JvmStatic

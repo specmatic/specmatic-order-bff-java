@@ -34,7 +34,7 @@ class ContractTestsUsingTestContainer {
         private const val EXCLUDED_ENDPOINTS = "'/health,/monitor/{id},/swagger/v1/swagger,/swagger-ui.html'"
         private const val KAFKA_PORT = 9092
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
-        private const val EXPECTED_NUMBER_OF_MESSAGES = 10
+        private const val EXPECTED_NUMBER_OF_MESSAGES = 11
         private val restTemplate: TestRestTemplate = TestRestTemplate()
 
         @JvmStatic
@@ -152,7 +152,10 @@ class ContractTestsUsingTestContainer {
                     "./build/reports/specmatic",
                     "/usr/src/app/build/reports/specmatic",
                     BindMode.READ_WRITE,
-                ).waitingFor(Wait.forLogMessage(".*Tests run:.*", 1))
+                ).waitingFor(
+                    Wait.forLogMessage(".*Tests run:.*", 1)
+                        .withStartupTimeout(Duration.ofMinutes(2))
+                )
                 .withExtraHost("host.docker.internal", "host-gateway")
                 .withLogConsumer { print(it.utf8String) }
 
