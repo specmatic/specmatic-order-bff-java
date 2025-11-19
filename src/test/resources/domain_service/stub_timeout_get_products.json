@@ -4,6 +4,9 @@
     "http-request": {
         "path": "/products",
         "method": "GET",
+        "headers": {
+          "pageSize": "20"
+        },
         "query": {
           "type": "$match(exact:other, times:2)"
         }

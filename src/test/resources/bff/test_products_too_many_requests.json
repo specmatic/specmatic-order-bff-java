@@ -3,7 +3,7 @@
     "path": "/findAvailableProducts?type=other",
     "method": "GET",
     "headers": {
-      "pageSize": "10"
+      "pageSize": "20"
     }
   },
   "http-response": {

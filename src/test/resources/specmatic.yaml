@@ -8,7 +8,6 @@ contracts:
     consumes:
       - io/specmatic/examples/store/openapi/api_order_v5.yaml
       - io/specmatic/examples/store/asyncapi/kafka.yaml
-      - io/specmatic/examples/store/asyncapi/3_0_0/order_service_async_v4.yaml
 report:
   formatters:
     - type: text

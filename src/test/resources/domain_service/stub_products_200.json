@@ -1,7 +1,10 @@
 {
   "http-request": {
     "method": "GET",
-    "path": "/products?type=(PRODUCT_TYPE:ProductType)"
+    "path": "/products?type=(PRODUCT_TYPE:ProductType)",
+    "headers": {
+      "pageSize": "(number)"
+    }
   },
   "http-response": {
     "status": 200,
