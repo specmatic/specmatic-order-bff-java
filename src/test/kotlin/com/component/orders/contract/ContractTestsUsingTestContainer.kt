@@ -16,6 +16,7 @@ import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 import org.testcontainers.containers.wait.strategy.Wait
+import org.testcontainers.images.PullPolicy
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.net.URI
@@ -42,6 +43,7 @@ class ContractTestsUsingTestContainer {
         @Container
         private val stubContainer: GenericContainer<*> =
             GenericContainer("specmatic/specmatic-openapi")
+                .withImagePullPolicy (PullPolicy.alwaysPull())
                 .withCommand(
                     "virtualize",
                     "--examples=examples",
@@ -104,6 +106,7 @@ class ContractTestsUsingTestContainer {
                     }
                 }
             }.apply {
+                withImagePullPolicy (PullPolicy.alwaysPull())
                 withCommand("virtualize")
                 withCreateContainerCmdModifier { cmd ->
                     cmd.hostConfig?.withPortBindings(
@@ -130,6 +133,7 @@ class ContractTestsUsingTestContainer {
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/specmatic-openapi")
+                .withImagePullPolicy (PullPolicy.alwaysPull())
                 .withCommand(
                     "test",
                     "--host=$APPLICATION_HOST",
