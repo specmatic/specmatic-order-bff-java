@@ -13,6 +13,10 @@ build:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
+    MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  cache:
+    paths:
+      - .m2/repository
   script:
     - env | grep -i docker
     - apk add -U docker
