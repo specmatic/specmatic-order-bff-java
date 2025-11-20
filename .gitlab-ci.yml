@@ -17,4 +17,5 @@ build:
     - env | grep -i docker
     - apk add -U docker
     - docker info
+    - docker run -it --rm alpine echo foo
     - ./gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
