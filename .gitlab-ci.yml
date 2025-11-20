@@ -1,0 +1,8 @@
+stages:
+ - build
+
+build:
+  stage: build
+  image: gradle:latest
+  script:
+    - ./gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
