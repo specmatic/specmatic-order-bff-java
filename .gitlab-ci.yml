@@ -7,8 +7,13 @@ build:
   services:
     - name: docker:dind
       alias: docker
+      # explicitly disable tls to avoid docker startup interruption
+      command: ["--tls=false"]
   variables:
     DOCKER_HOST: tcp://docker:2375/
     DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
   script:
+    - apk add -U docker
+    - docker info
     - ./gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
