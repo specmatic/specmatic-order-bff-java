@@ -3,6 +3,6 @@ stages:
 
 build:
   stage: build
-  image: gradle:latest
+  image: amazoncorretto:17-alpine
   script:
     - ./gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
