@@ -55,7 +55,7 @@ class OrderService(
     }
 
     fun findProducts(type: ProductType, pageSize: Int, fromDate: LocalDateTime?, toDate: LocalDateTime?): List<Product> {
-        val effectiveToDate = toDate ?: LocalDateTime.now()
+        val effectiveToDate = toDate ?: LocalDateTime.now().plusWeeks(1)
         val effectiveFromDate = fromDate ?: effectiveToDate.minusWeeks(1)
 
         val products = fetchProductsFromBackendAPI(type, pageSize, effectiveFromDate, effectiveToDate).take(1)

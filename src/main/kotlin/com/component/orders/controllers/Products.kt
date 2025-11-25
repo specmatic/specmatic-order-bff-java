@@ -29,8 +29,8 @@ class Products(@Autowired val orderBFFService: OrderBFFService) {
     fun findAvailableProducts(
         @Valid @RequestParam(name = "type", required = false, defaultValue = "gadget") type: ProductType = ProductType.gadget,
         @Valid @Positive @RequestHeader(name = "pageSize", required = true) pageSize: Int,
-        @RequestParam(name = "from-date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) fromDate: LocalDateTime? = null,
-        @RequestParam(name = "to-date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) toDate: LocalDateTime? = null,
+        @RequestParam(name = "from-date", required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) fromDate: LocalDateTime,
+        @RequestParam(name = "to-date", required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) toDate: LocalDateTime,
     ): ResponseEntity<*> {
         return when (val productsResponse = orderBFFService.findProducts(type, pageSize, fromDate, toDate)) {
             is AvailableProductsResponse.FetchedProducts -> ResponseEntity(productsResponse.products, HttpStatus.OK)

@@ -4,6 +4,10 @@
     "method": "GET",
     "headers": {
       "pageSize": "10"
+    },
+    "query": {
+      "from-date": "2025-10-01T00:00:00Z",
+      "to-date": "2025-10-15T23:59:59Z"
     }
   },
   "http-response": {
