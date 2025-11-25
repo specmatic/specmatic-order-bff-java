@@ -15,7 +15,7 @@
           "name": "$(data.type[PRODUCT_TYPE].name)",
           "inventory": "(ProductInventory)",
           "type": "$(PRODUCT_TYPE)",
-          "createdOn": "2025-11-24T10:00:00Z"
+          "createdOn": "2025-11-24"
         }
       ],
       "status-text": "OK"

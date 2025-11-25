@@ -12,6 +12,7 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -54,8 +55,8 @@ class OrderService(
         return response
     }
 
-    fun findProducts(type: ProductType, pageSize: Int, fromDate: LocalDateTime?, toDate: LocalDateTime?): List<Product> {
-        val effectiveToDate = toDate ?: LocalDateTime.now().plusWeeks(1)
+    fun findProducts(type: ProductType, pageSize: Int, fromDate: LocalDate?, toDate: LocalDate?): List<Product> {
+        val effectiveToDate = toDate ?: LocalDate.now().plusWeeks(1)
         val effectiveFromDate = fromDate ?: effectiveToDate.minusWeeks(1)
 
         val products = fetchProductsFromBackendAPI(type, pageSize, effectiveFromDate, effectiveToDate).take(1)
@@ -103,9 +104,9 @@ class OrderService(
         return headers
     }
 
-    private fun fetchProductsFromBackendAPI(type: ProductType, pageSize: Int, fromDate: LocalDateTime, toDate: LocalDateTime): List<Product> {
-        val formattedFromDate = fromDate.format(DateTimeFormatter.ISO_DATE_TIME)
-        val formattedToDate = toDate.format(DateTimeFormatter.ISO_DATE_TIME)
+    private fun fetchProductsFromBackendAPI(type: ProductType, pageSize: Int, fromDate: LocalDate, toDate: LocalDate): List<Product> {
+        val formattedFromDate = fromDate.format(DateTimeFormatter.ISO_DATE)
+        val formattedToDate = toDate.format(DateTimeFormatter.ISO_DATE)
         val apiUrl = orderAPIUrl + "/" + API.LIST_PRODUCTS.url + "?type=$type&from-date=$formattedFromDate&to-date=$formattedToDate"
         val headers = getHeaders().apply { add("pageSize", pageSize.toString()) }
         val entity = HttpEntity<Any>(headers)
@@ -118,7 +119,9 @@ class OrderService(
                     object : ParameterizedTypeReference<List<Product>>() {},
                 )
             } catch (e: Throwable) {
+                println("Error while deserializing response from backend")
                 println(e)
+                println(e.stackTraceToString())
                 throw e
             }
 
@@ -131,10 +134,7 @@ class OrderService(
 
         response.body?.forEach { product ->
             product.createdOn?.let { createdOn ->
-                val offsetToDate = toDate.atZone(ZoneId.systemDefault()).toOffsetDateTime();
-                val offsetFromDate = fromDate.atZone(ZoneId.systemDefault()).toOffsetDateTime();
-
-                if (createdOn.isBefore(offsetFromDate) || createdOn.isAfter(offsetToDate)) {
+                if (createdOn.isBefore(fromDate) || createdOn.isAfter(toDate)) {
                     println("[OrderService] Product createdOn is outside the specified date range, " +
                             "product id=${product.id}, createdOn=$createdOn, " +
                             "expected range: [$fromDate, $toDate]")

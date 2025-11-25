@@ -6,8 +6,8 @@
       "pageSize": "20"
     },
     "query": {
-      "from-date": "2025-11-01T00:00:00Z",
-      "to-date": "2025-11-15T23:59:59Z"
+      "from-date": "2025-11-01",
+      "to-date": "2025-11-15"
     }
   },
   "http-response": {
