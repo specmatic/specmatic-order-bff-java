@@ -60,18 +60,60 @@ else
 fi
 
 # Calculate to-date minus 1 day
-if date --version >/dev/null 2>&1; then
+# Detect which date implementation we're using
+if date --version 2>&1 | grep -q "BusyBox"; then
+  # BusyBox date (common in Docker/Alpine)
+  echo "Hook: Using BusyBox date to parse: $to_date_normalized" >&2
+
+  # Convert ISO 8601 to epoch seconds, subtract 1 day (86400 seconds), convert back
+  # BusyBox date accepts YYYY-MM-DD hh:mm[:ss] format
+  to_date_busybox=$(echo "$to_date_normalized" | sed 's/T/ /' | sed 's/Z$//')
+
+  # Get epoch seconds for the date
+  epoch=$(date -u -D "%Y-%m-%d %H:%M:%S" -d "$to_date_busybox" +%s 2>&1)
+  parse_result=$?
+
+  if [ $parse_result -eq 0 ]; then
+    # Subtract 1 day (86400 seconds)
+    new_epoch=$((epoch - 86400))
+    # Convert back to ISO 8601 format
+    created_on=$(date -u -d "@$new_epoch" -Iseconds 2>&1)
+    parse_result=$?
+    if [ $parse_result -ne 0 ]; then
+      echo "Hook: BusyBox date formatting failed: $created_on" >&2
+      created_on=""
+    fi
+  else
+    echo "Hook: BusyBox date parsing failed: $epoch" >&2
+    created_on=""
+  fi
+elif date --version >/dev/null 2>&1; then
   # GNU date (Linux)
-  created_on=$(date -d "$to_date_normalized - 1 day" -Iseconds 2>/dev/null)
+  echo "Hook: Using GNU date to parse: $to_date_normalized" >&2
+  created_on=$(date -d "$to_date_normalized - 1 day" -Iseconds 2>&1)
+  parse_result=$?
+  if [ $parse_result -ne 0 ]; then
+    echo "Hook: GNU date parsing failed with exit code $parse_result: $created_on" >&2
+    created_on=""
+  fi
 else
   # BSD date (macOS)
+  echo "Hook: Using BSD date to parse: $to_date_normalized" >&2
   # Try parsing with Z suffix first
-  created_on=$(date -v-1d -j -f "%Y-%m-%dT%H:%M:%SZ" "$to_date_normalized" "+%Y-%m-%dT%H:%M:%SZ" 2>/dev/null)
+  created_on=$(date -v-1d -j -f "%Y-%m-%dT%H:%M:%SZ" "$to_date_normalized" "+%Y-%m-%dT%H:%M:%SZ" 2>&1)
+  parse_result=$?
 
-  # If that fails, try with timezone offset format
-  if [ -z "$created_on" ]; then
+  if [ $parse_result -ne 0 ]; then
+    echo "Hook: BSD date parsing with Z suffix failed with exit code $parse_result: $created_on" >&2
+    # If that fails, try with timezone offset format
     to_date_clean=$(echo "$to_date_normalized" | sed 's/Z$/+00:00/')
-    created_on=$(date -v-1d -j -f "%Y-%m-%dT%H:%M:%S%z" "$to_date_clean" "+%Y-%m-%dT%H:%M:%SZ" 2>/dev/null)
+    echo "Hook: Trying BSD date with timezone offset: $to_date_clean" >&2
+    created_on=$(date -v-1d -j -f "%Y-%m-%dT%H:%M:%S%z" "$to_date_clean" "+%Y-%m-%dT%H:%M:%SZ" 2>&1)
+    parse_result=$?
+    if [ $parse_result -ne 0 ]; then
+      echo "Hook: BSD date parsing with timezone offset also failed with exit code $parse_result: $created_on" >&2
+      created_on=""
+    fi
   fi
 fi
 
