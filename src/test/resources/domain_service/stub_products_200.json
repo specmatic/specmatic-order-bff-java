@@ -1,22 +1,25 @@
 {
-  "http-request": {
-    "method": "GET",
-    "path": "/products?type=(PRODUCT_TYPE:ProductType)",
-    "headers": {
-      "pageSize": "(number)"
-    }
-  },
-  "http-response": {
-    "status": 200,
-    "body": [
-      {
-        "id": "$(data.type[PRODUCT_TYPE].productId)",
-        "name": "$(data.type[PRODUCT_TYPE].name)",
-        "inventory": "(ProductInventory)",
-        "type": "$(PRODUCT_TYPE)"
+  "partial": {
+    "http-request": {
+      "method": "GET",
+      "path": "/products?type=(PRODUCT_TYPE:ProductType)",
+      "headers": {
+        "pageSize": "(number)"
       }
-    ],
-    "status-text": "OK"
+    },
+    "http-response": {
+      "status": 200,
+      "body": [
+        {
+          "id": "$(data.type[PRODUCT_TYPE].productId)",
+          "name": "$(data.type[PRODUCT_TYPE].name)",
+          "inventory": "(ProductInventory)",
+          "type": "$(PRODUCT_TYPE)",
+          "createdOn": "2025-11-24T10:00:00Z"
+        }
+      ],
+      "status-text": "OK"
+    }
   },
   "data": {
     "type": {

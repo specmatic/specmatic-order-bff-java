@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.ResourceAccessException
 import java.net.SocketTimeoutException
+import java.time.LocalDateTime
 
 @Service
 class OrderBFFService {
@@ -33,9 +34,9 @@ class OrderBFFService {
         return orderService.createOrder(orderRequest)
     }
 
-    fun findProducts(type: ProductType, pageSize: Int): AvailableProductsResponse{
+    fun findProducts(type: ProductType, pageSize: Int, fromDate: LocalDateTime?, toDate: LocalDateTime?): AvailableProductsResponse{
         return try {
-            val products = orderService.findProducts(type, pageSize)
+            val products = orderService.findProducts(type, pageSize, fromDate, toDate)
             AvailableProductsResponse.FetchedProducts(products = products)
         } catch (e: ResourceAccessException) {
             if (e.cause !is SocketTimeoutException) throw e

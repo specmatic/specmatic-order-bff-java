@@ -6,19 +6,15 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
-import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
-import java.lang.IllegalStateException
-import java.util.*
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Service
 class OrderService(
@@ -58,8 +54,12 @@ class OrderService(
         return response
     }
 
-    fun findProducts(type: ProductType, pageSize: Int): List<Product> {
-        val products = fetchProductsFromBackendAPI(type, pageSize).take(1)
+    fun findProducts(type: ProductType, pageSize: Int, fromDate: LocalDateTime?, toDate: LocalDateTime?): List<Product> {
+        val effectiveToDate = toDate ?: LocalDateTime.now()
+        val effectiveFromDate = fromDate ?: effectiveToDate.minusWeeks(1)
+
+        val products = fetchProductsFromBackendAPI(type, pageSize, effectiveFromDate, effectiveToDate).take(1)
+
         products.forEach {
             val productMessage = ProductMessage(it.id, it.name, it.inventory)
             kafkaTemplate.send(productQueriesTopic, jacksonObjectMapper.writeValueAsString(productMessage))
@@ -103,22 +103,47 @@ class OrderService(
         return headers
     }
 
-    private fun fetchProductsFromBackendAPI(type: ProductType, pageSize: Int): List<Product> {
-        val apiUrl = orderAPIUrl + "/" + API.LIST_PRODUCTS.url + "?type=$type"
+    private fun fetchProductsFromBackendAPI(type: ProductType, pageSize: Int, fromDate: LocalDateTime, toDate: LocalDateTime): List<Product> {
+        val formattedFromDate = fromDate.format(DateTimeFormatter.ISO_DATE_TIME)
+        val formattedToDate = toDate.format(DateTimeFormatter.ISO_DATE_TIME)
+        val apiUrl = orderAPIUrl + "/" + API.LIST_PRODUCTS.url + "?type=$type&from-date=$formattedFromDate&to-date=$formattedToDate"
         val headers = getHeaders().apply { add("pageSize", pageSize.toString()) }
         val entity = HttpEntity<Any>(headers)
-        val response = restTemplateWithDefaultTimeout.exchange(
-            apiUrl,
-            HttpMethod.GET,
-            entity,
-            object : ParameterizedTypeReference<List<Product>>() {},
-        )
+        val response =
+            try {
+                restTemplateWithDefaultTimeout.exchange(
+                    apiUrl,
+                    HttpMethod.GET,
+                    entity,
+                    object : ParameterizedTypeReference<List<Product>>() {},
+                )
+            } catch (e: Throwable) {
+                println(e)
+                throw e
+            }
 
         response.body?.forEach {
-            if (it.type != type) throw IllegalStateException("Product type mismatch, expected all products to have type: $type")
+            if (it.type != type)
+                throw IllegalStateException("Product type mismatch, expected all products to have type: $type")
         }
 
-        return response.body
+        response.body?.forEach { product ->
+            product.createdOn?.let { createdOn ->
+                val offsetToDate = toDate.atZone(ZoneId.systemDefault()).toOffsetDateTime();
+                val offsetFromDate = fromDate.atZone(ZoneId.systemDefault()).toOffsetDateTime();
+
+                if (createdOn.isBefore(offsetFromDate) || createdOn.isAfter(offsetToDate)) {
+                    throw IllegalStateException(
+                        "Product createdOn is outside the specified date range: " +
+                                "product id=${product.id}, createdOn=$createdOn, " +
+                                "expected range: [$fromDate, $toDate]"
+                    )
+                }
+            }
+        }
+
+
+        return response.body ?: emptyList()
     }
 
     private fun sendNewOrdersEvent(orderId: Int) {
