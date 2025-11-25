@@ -123,8 +123,10 @@ class OrderService(
             }
 
         response.body?.forEach {
-            if (it.type != type)
+            if (it.type != type) {
+                println("[OrderService] Product type mismatch, expected: $type, found: ${it.type}")
                 throw IllegalStateException("Product type mismatch, expected all products to have type: $type")
+            }
         }
 
         response.body?.forEach { product ->
@@ -133,6 +135,9 @@ class OrderService(
                 val offsetFromDate = fromDate.atZone(ZoneId.systemDefault()).toOffsetDateTime();
 
                 if (createdOn.isBefore(offsetFromDate) || createdOn.isAfter(offsetToDate)) {
+                    println("[OrderService] Product createdOn is outside the specified date range, " +
+                            "product id=${product.id}, createdOn=$createdOn, " +
+                            "expected range: [$fromDate, $toDate]")
                     throw IllegalStateException(
                         "Product createdOn is outside the specified date range: " +
                                 "product id=${product.id}, createdOn=$createdOn, " +
