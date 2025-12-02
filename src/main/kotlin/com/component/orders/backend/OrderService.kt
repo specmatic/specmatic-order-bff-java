@@ -59,8 +59,8 @@ class OrderService(
     }
 
     fun findProducts(type: ProductType, pageSize: Int): List<Product> {
-        val products = fetchProductsFromBackendAPI(type, pageSize).take(1)
-        products.forEach {
+        val products = fetchProductsFromBackendAPI(type, pageSize)
+        products.take(1).forEach {
             val productMessage = ProductMessage(it.id, it.name, it.inventory)
             kafkaTemplate.send(productQueriesTopic, jacksonObjectMapper.writeValueAsString(productMessage))
         }
