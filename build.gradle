@@ -82,6 +82,14 @@ group = 'io.specmatic.sample'
 version = '1.0-SNAPSHOT'
 sourceCompatibility = '17'
 
+tasks.register('dockerBuild', Exec) {
+    group = 'docker'
+    description = 'Assembles the jar, and builds the Docker image'
+    workingDir projectDir
+    dependsOn('assemble')
+    commandLine 'docker', 'build', '-t', 'specmatic/specmatic-order-bff-java:latest', '.'
+}
+
 bootJar {
     archiveClassifier = "all"
     version = ""
