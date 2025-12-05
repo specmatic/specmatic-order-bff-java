@@ -4,3 +4,7 @@ specmatic-kafka-0.22.5-TRIAL-all.jar filter=lfs diff=lfs merge=lfs -text
 lib/specmatic-kafka-0.22.5-TRIAL-all.jar filter=lfs diff=lfs merge=lfs -text
 lib/io/specmatic/async/specmatic-async-core/1.0.3/specmatic-async-core-1.0.3.jar filter=lfs diff=lfs merge=lfs -text
 lib/io/specmatic/async/specmatic-kafka/1.0.3/specmatic-kafka-1.0.3.jar filter=lfs diff=lfs merge=lfs -text
+/gradlew text eol=lf
+* text=auto eol=lf
+*.bat text eol=crlf
+*.jar binary

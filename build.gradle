@@ -10,6 +10,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     maven {
         url "https://repo.specmatic.io/releases"
     }
@@ -45,11 +46,8 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka:3.3.11'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
-    testApi "io.specmatic.openapi:specmatic-openapi:$specmaticOpenAPIVersion"
-    testImplementation("io.specmatic.async:specmatic-async-core-min:$specmaticKafkaVersion")
-    testImplementation("io.specmatic.async:specmatic-kafka:$specmaticKafkaVersion") {
-        exclude group: 'io.specmatic.async', module: 'specmatic-async-core'
-    }
+    testImplementation("io.specmatic.openapi:specmatic-openapi:$specmaticOpenAPIVersion")
+    testImplementation("io.specmatic.async:specmatic-kafka:$specmaticKafkaVersion")
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation('org.assertj:assertj-core:3.27.6', 'org.junit.jupiter:junit-jupiter-api:5.13.4')
@@ -80,6 +78,14 @@ test {
 group = 'io.specmatic.sample'
 version = '1.0-SNAPSHOT'
 sourceCompatibility = '17'
+
+tasks.register('dockerBuild', Exec) {
+    group = 'docker'
+    description = 'Assembles the jar, and builds the Docker image'
+    workingDir projectDir
+    dependsOn('assemble')
+    commandLine 'docker', 'build', '-t', 'specmatic/specmatic-order-bff-java:latest', '.'
+}
 
 bootJar {
     archiveClassifier = "all"

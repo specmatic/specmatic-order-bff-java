@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="10 seconds">
+
+    <!-- Console appender that prints everything -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Pattern: date time [thread] LEVEL logger{36} - message -->
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger - set to TRACE to see absolutely everything -->
+    <root level="DEBUG">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <!-- Optional: you can quiet down very noisy third-party loggers if needed later
+    <logger name="org.apache.http" level="INFO"/>
+    <logger name="com.some.very.noisy.package" level="WARN"/>
+    -->
+
+</configuration>

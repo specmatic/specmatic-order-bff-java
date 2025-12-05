@@ -66,7 +66,7 @@ class ApiTests {
         val expectation = File("src/test/resources/domain_service/stub_products_200.json").readText()
         setExpectations(expectation)
 
-        val url = "http://localhost:8080/findAvailableProducts?type=gadget"
+        val url = "http://localhost:8080/findAvailableProducts?type=gadget&from-date=2025-11-23&to-date=2025-11-25"
         val headers = HttpHeaders().apply {
             set("pageSize", "10")
         }

@@ -61,7 +61,12 @@ class ContractTestsUsingTestContainer {
                     "./src/test/resources/specmatic.yaml",
                     "/usr/src/app/specmatic.yaml",
                     BindMode.READ_ONLY,
-                ).waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
+                ).withFileSystemBind(
+                    "./hooks",
+                    "/usr/src/app/hooks",
+                    BindMode.READ_ONLY
+                )
+                .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
 
         @Container

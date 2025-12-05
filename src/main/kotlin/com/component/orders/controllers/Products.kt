@@ -8,17 +8,14 @@ import com.component.orders.services.OrderBFFService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Positive
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 
 @Validated
 @RestController
@@ -27,8 +24,10 @@ class Products(@Autowired val orderBFFService: OrderBFFService) {
     fun findAvailableProducts(
         @Valid @RequestParam(name = "type", required = false, defaultValue = "gadget") type: ProductType = ProductType.gadget,
         @Valid @Positive @RequestHeader(name = "pageSize", required = true) pageSize: Int,
+        @RequestParam(name = "from-date", required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate,
+        @RequestParam(name = "to-date", required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate,
     ): ResponseEntity<*> {
-        return when (val productsResponse = orderBFFService.findProducts(type, pageSize)) {
+        return when (val productsResponse = orderBFFService.findProducts(type, pageSize, fromDate, toDate)) {
             is AvailableProductsResponse.FetchedProducts -> ResponseEntity(productsResponse.products, HttpStatus.OK)
             is AvailableProductsResponse.RequestTimedOut -> {
                 val headers = HttpHeaders().apply {

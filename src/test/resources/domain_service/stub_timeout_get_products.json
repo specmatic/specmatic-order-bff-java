@@ -8,7 +8,9 @@
           "pageSize": "20"
         },
         "query": {
-          "type": "$match(exact:other, times:2)"
+          "type": "$match(exact:other, times:2)",
+          "from-date": "2025-11-01",
+          "to-date": "2025-11-15"
         }
     },
     "http-response": {
