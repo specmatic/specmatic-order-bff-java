@@ -2,7 +2,6 @@ version: 2
 contracts:
   - git:
       url: https://github.com/specmatic/specmatic-order-contracts.git
-      branch: dynamic
     provides:
       - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
     consumes:
