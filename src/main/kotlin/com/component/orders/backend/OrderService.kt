@@ -125,29 +125,37 @@ class OrderService(
                 throw e
             }
 
-        response.body?.forEach {
-            if (it.type != type) {
-                println("[OrderService] Product type mismatch, expected: $type, found: ${it.type}")
-                throw IllegalStateException("Product type mismatch, expected all products to have type: $type")
-            }
+        val responseBody = response.body.orEmpty()
+
+        val unexpectedTypes = responseBody.map { it.type }.filter { it != type }.distinct().map { it.name }
+
+        if (unexpectedTypes.isNotEmpty()) {
+            val unexpectedTypesCsv = unexpectedTypes.joinToString(", ")
+            val message = "Expected products of type $type but received products with unexpected types: $unexpectedTypesCsv"
+
+            println("[OrderService] $message")
+
+            throw IllegalStateException(message)
         }
 
-        response.body?.forEach { product ->
+        responseBody.forEach { product ->
             product.createdOn?.let { createdOn ->
                 if (createdOn.isBefore(fromDate) || createdOn.isAfter(toDate)) {
-                    println("[OrderService] Product createdOn is outside the specified date range, " +
-                            "product id=${product.id}, createdOn=$createdOn, " +
-                            "expected range: [$fromDate, $toDate]")
+                    val message =
+                        "The createdOn field is outside the specified date range: " +
+                        "product id=${product.id}, createdOn=$createdOn, " +
+                        "expected range: [$fromDate, $toDate]"
+
+                    println("[OrderService] $message")
+
                     throw IllegalStateException(
-                        "Product createdOn is outside the specified date range: " +
-                                "product id=${product.id}, createdOn=$createdOn, " +
-                                "expected range: [$fromDate, $toDate]"
+                        message
                     )
                 }
             }
         }
 
-        return response.body
+        return responseBody
     }
 
     private fun sendNewOrdersEvent(orderId: Int) {

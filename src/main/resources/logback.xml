@@ -10,7 +10,7 @@
     </appender>
 
     <!-- Root logger - set to TRACE to see absolutely everything -->
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>
 
