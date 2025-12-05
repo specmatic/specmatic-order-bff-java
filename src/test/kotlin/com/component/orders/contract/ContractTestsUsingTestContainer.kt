@@ -43,7 +43,7 @@ class ContractTestsUsingTestContainer {
         @Container
         private val stubContainer: GenericContainer<*> =
             GenericContainer("specmatic/specmatic-openapi")
-//                .withImagePullPolicy (PullPolicy.alwaysPull())
+                .withImagePullPolicy (PullPolicy.alwaysPull())
                 .withCommand(
                     "virtualize",
                     "--examples=examples",
