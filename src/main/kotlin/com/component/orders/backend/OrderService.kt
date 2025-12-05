@@ -59,9 +59,9 @@ class OrderService(
         val effectiveToDate = toDate ?: LocalDate.now().plusWeeks(1)
         val effectiveFromDate = fromDate ?: effectiveToDate.minusWeeks(1)
 
-        val products = fetchProductsFromBackendAPI(type, pageSize, effectiveFromDate, effectiveToDate).take(1)
+        val products = fetchProductsFromBackendAPI(type, pageSize, effectiveFromDate, effectiveToDate)
 
-        products.forEach {
+        products.take(1).forEach {
             val productMessage = ProductMessage(it.id, it.name, it.inventory)
             kafkaTemplate.send(productQueriesTopic, jacksonObjectMapper.writeValueAsString(productMessage))
         }
@@ -147,8 +147,7 @@ class OrderService(
             }
         }
 
-
-        return response.body ?: emptyList()
+        return response.body
     }
 
     private fun sendNewOrdersEvent(orderId: Int) {
