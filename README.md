@@ -29,6 +29,7 @@ Following are the specifications used in this project:
 2. Specmatic
 3. Specmatic-Kafka
 4. Docker Desktop (to run contract test and mock servers using test containers)
+5. [Json Query Language](https://jqlang.org/download/) for specmatic-stub hook script
 
 ## Run Contract Tests
 
