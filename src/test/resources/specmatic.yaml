@@ -4,7 +4,7 @@ contracts:
       url: https://github.com/specmatic/specmatic-order-contracts.git
       branch: dynamic
     provides:
-      - io/specmatic/examples/store/openapi/product_search_bff_v5.yaml
+      - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
     consumes:
       - io/specmatic/examples/store/openapi/api_order_v5.yaml
       - io/specmatic/examples/store/asyncapi/kafka.yaml
