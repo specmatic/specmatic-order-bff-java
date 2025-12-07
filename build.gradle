@@ -20,23 +20,12 @@ repositories {
     mavenCentral()
 }
 
-tasks.withType(KotlinCompile).configureEach {
-    kotlinOptions {
-        jvmTarget = "17"
-        compilerOptions.languageVersion.set(KotlinVersion.KOTLIN_2_2)
-        compilerOptions.apiVersion.set(KotlinVersion.KOTLIN_2_2)
-    }
-}
-
 jacocoTestReport {
     dependsOn test
     reports {
         csv.required = true
     }
 }
-
-def specmaticOpenAPIVersion = project.property("specmaticOpenAPIVersion")
-def specmaticKafkaVersion = project.property("specmaticKafkaVersion")
 
 dependencies {
     implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.8')
