@@ -65,6 +65,10 @@ class ContractTestsUsingTestContainer {
                     "./hooks",
                     "/usr/src/app/hooks",
                     BindMode.READ_ONLY
+                ).withFileSystemBind(
+                    "./build/reports/specmatic/stub",
+                    "/usr/src/app/build/reports/specmatic/stub",
+                    BindMode.READ_WRITE,
                 )
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
@@ -79,6 +83,11 @@ class ContractTestsUsingTestContainer {
                     // wait for container to stabilize and then set expectations
                     Thread.sleep(200)
                     setExpectations()
+                }
+
+                override fun stop() {
+                    dumpReports()
+                    super.stop()
                 }
 
                 private fun setExpectations() {
@@ -110,6 +119,23 @@ class ContractTestsUsingTestContainer {
                         println("Expectations setting failed: ${response.body}")
                     }
                 }
+
+                private fun dumpReports() {
+                    println("Dumping kafka mock reports..")
+                    val response: ResponseEntity<String> =
+                        restTemplate.exchange(
+                            URI("http://localhost:$KAFKA_MOCK_API_SERVER_PORT/stop"),
+                            HttpMethod.POST,
+                            HttpEntity(""),
+                            String::class.java,
+                        )
+                    if (response.statusCode == HttpStatusCode.valueOf(200)) {
+                        println("Reports dumped succesfully!")
+                    } else {
+                        println("Error occurred while dumping the reports")
+                    }
+                }
+
             }.apply {
                 withImagePullPolicy (PullPolicy.alwaysPull())
                 withCommand("virtualize")
@@ -127,6 +153,11 @@ class ContractTestsUsingTestContainer {
                     "./src/test/resources/specmatic.yaml",
                     "/usr/src/app/specmatic.yaml",
                     BindMode.READ_ONLY,
+                )
+                withFileSystemBind(
+                    "./build/reports/specmatic/kafka",
+                    "/usr/src/app/build/reports/specmatic/kafka",
+                    BindMode.READ_WRITE,
                 )
                 waitingFor(
                     LogMessageWaitStrategy()
