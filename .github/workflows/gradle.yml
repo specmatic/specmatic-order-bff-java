@@ -14,6 +14,8 @@ jobs:
         os: [ ubuntu-latest ]
         java: [17]
     runs-on: ${{ matrix.os }}
+    env:
+      CTRF_REPORT_PATH: 'build/reports/specmatic/test/ctrf/*.json'
     steps:
     - uses: actions/checkout@v4
       with: { fetch-depth: 0 }
@@ -42,7 +44,7 @@ jobs:
       if: always() # Run even if tests fail
       with:
         name: ctrf-report
-        path: build/reports/specmatic/ctrf/*.json
+        path: ${{ env.CTRF_REPORT_PATH }}
         retention-days: 5
     
     # Display CTRF test results
@@ -50,7 +52,7 @@ jobs:
       uses: ctrf-io/github-test-reporter@v1
       if: always() # Run even if tests fail
       with:
-        report-path: './build/reports/specmatic/ctrf/*.json'
+        report-path: ${{ env.CTRF_REPORT_PATH }}
 
     - name: Run coverage report
       run: ./gradlew jacocoTestReport
