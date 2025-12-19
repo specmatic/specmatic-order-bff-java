@@ -83,6 +83,17 @@ class OrderService(
         return response
     }
 
+    fun deleteProduct(productId: Int): ResponseEntity<Void> {
+        val apiUrl = orderAPIUrl + "/" + API.DELETE_PRODUCT.url.replace("{id}", productId.toString())
+        val requestEntity = HttpEntity<Void>(getHeaders())
+        return restTemplateWithDefaultTimeout.exchange(
+            apiUrl,
+            API.DELETE_PRODUCT.method,
+            requestEntity,
+            Void::class.java,
+        )
+    }
+
     @KafkaListener(topics = ["wip-orders"])
     fun run(wipOrder: String) {
         println("[OrderService] Received message on topic 'wip-orders' - $wipOrder")
