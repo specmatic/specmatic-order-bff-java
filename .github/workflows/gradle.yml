@@ -65,7 +65,7 @@ jobs:
         echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
 
 
-    - name: Run Specmatic Insights Build Reporter
+    - name: Publish Build Reports to Specmatic Insights
       if: github.ref == 'refs/heads/main'
       run: |
         docker run \
