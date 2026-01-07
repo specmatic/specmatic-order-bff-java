@@ -36,7 +36,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
     testImplementation("io.specmatic.openapi:specmatic-openapi:$specmaticOpenAPIVersion")
-    testImplementation("io.specmatic.async:specmatic-kafka:$specmaticKafkaVersion")
+    testImplementation("io.specmatic.async:specmatic-async:$specmaticAsyncVersion")
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation('org.assertj:assertj-core:3.27.6', 'org.junit.jupiter:junit-jupiter-api:5.14.1')
