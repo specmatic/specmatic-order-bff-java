@@ -13,8 +13,6 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -35,6 +33,15 @@ class OrderService(
         val requestFactory = SimpleClientHttpRequestFactory()
         requestFactory.setConnectTimeout(1000)
         requestFactory.setReadTimeout(1000)
+        restTemplate.setRequestFactory(requestFactory)
+        restTemplate
+    }
+
+    private val restTemplateWithWarmupTimeout: RestTemplate by lazy {
+        val restTemplate = RestTemplate()
+        val requestFactory = SimpleClientHttpRequestFactory()
+        requestFactory.setConnectTimeout(15000)
+        requestFactory.setReadTimeout(15000)
         restTemplate.setRequestFactory(requestFactory)
         restTemplate
     }
@@ -69,18 +76,36 @@ class OrderService(
     }
 
     fun createProduct(newProduct: NewProduct): ResponseEntity<Id> {
-        val apiUrl = orderAPIUrl + "/" + API.CREATE_PRODUCTS.url
-        val headers = getHeaders().apply { add("Idempotency-Key", newProduct.idempotencyKey) }
-        val requestEntity = HttpEntity(newProduct, headers)
-        val response = restTemplateWithDefaultTimeout.exchange(
-            apiUrl,
-            API.CREATE_PRODUCTS.method,
-            requestEntity,
-            Id::class.java,
-        )
-
+        val response = createProductWith(restTemplateWithDefaultTimeout, newProduct)
         if (response.body == null) error("No product id received in Product API response.")
         return response
+    }
+
+    fun deleteProduct(productId: Int): ResponseEntity<Void> {
+        val apiUrl = orderAPIUrl + "/" + API.DELETE_PRODUCT.url.replace("{id}", productId.toString())
+        val requestEntity = HttpEntity<Void>(getHeaders())
+        return restTemplateWithDefaultTimeout.exchange(
+            apiUrl,
+            API.DELETE_PRODUCT.method,
+            requestEntity,
+            Void::class.java,
+        )
+    }
+
+    fun exerciseServiceChain(warmupProduct: NewProduct): Boolean {
+        return try {
+            // Create product using warmup timeout
+            val createResponse = createProductWith(restTemplateWithWarmupTimeout, warmupProduct)
+            val productId = requireProductId(createResponse, "No product id received in warmup response")
+
+            // Delete product using warmup timeout
+            deleteProductWith(restTemplateWithWarmupTimeout, productId)
+
+            true
+        } catch (e: Exception) {
+            println("[OrderService] Service chain warmup failed: ${e.message}")
+            false
+        }
     }
 
     @KafkaListener(topics = ["wip-orders"])
@@ -156,6 +181,33 @@ class OrderService(
         }
 
         return responseBody
+    }
+
+    private fun createProductWith(restTemplate: RestTemplate, newProduct: NewProduct): ResponseEntity<Id> {
+        val apiUrl = orderAPIUrl + "/" + API.CREATE_PRODUCTS.url
+        val headers = getHeaders().apply { add("Idempotency-Key", newProduct.idempotencyKey) }
+        val requestEntity = HttpEntity(newProduct, headers)
+        return restTemplate.exchange(
+            apiUrl,
+            API.CREATE_PRODUCTS.method,
+            requestEntity,
+            Id::class.java,
+        )
+    }
+
+    private fun deleteProductWith(restTemplate: RestTemplate, productId: Int): ResponseEntity<Void> {
+        val apiUrl = orderAPIUrl + "/" + API.DELETE_PRODUCT.url.replace("{id}", productId.toString())
+        val requestEntity = HttpEntity<Void>(getHeaders())
+        return restTemplate.exchange(
+            apiUrl,
+            API.DELETE_PRODUCT.method,
+            requestEntity,
+            Void::class.java,
+        )
+    }
+
+    private fun requireProductId(response: ResponseEntity<Id>, errorMessage: String): Int {
+        return response.body?.id ?: error(errorMessage)
     }
 
     private fun sendNewOrdersEvent(orderId: Int) {
