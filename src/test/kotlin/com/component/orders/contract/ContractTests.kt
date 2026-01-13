@@ -1,8 +1,8 @@
 package com.component.orders.contract
 
-import io.specmatic.async.mock.AsyncMock
-import io.specmatic.async.mock.model.Expectation
-import io.specmatic.async.specmatic.async.VersionInfo
+import io.specmatic.async.specmatic.kafka.VersionInfo
+import io.specmatic.kafka.mock.KafkaMock
+import io.specmatic.kafka.mock.model.Expectation
 import io.specmatic.stub.ContractStub
 import io.specmatic.stub.createStub
 import io.specmatic.test.SpecmaticContractTest
@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest
 class ContractTests : SpecmaticContractTest {
     companion object {
         private lateinit var httpStub: ContractStub
-        private lateinit var kafkaMock: AsyncMock
+        private lateinit var kafkaMock: KafkaMock
         private const val APPLICATION_HOST = "localhost"
         private const val APPLICATION_PORT = "8080"
         private const val HTTP_STUB_HOST = "localhost"
@@ -28,7 +28,7 @@ class ContractTests : SpecmaticContractTest {
         @JvmStatic
         @BeforeAll
         fun setUp() {
-            println("Using specmatic async - ${VersionInfo.describe()}")
+            println("Using specmatic kafka - ${VersionInfo.describe()}")
             System.setProperty("host", APPLICATION_HOST)
             System.setProperty("port", APPLICATION_PORT)
             System.setProperty("filter", "PATH!=$EXCLUDED_ENDPOINTS")
@@ -36,7 +36,7 @@ class ContractTests : SpecmaticContractTest {
             httpStub = createStub(listOf("./src/test/resources/domain_service"), HTTP_STUB_HOST, HTTP_STUB_PORT)
 
             // Start Specmatic Kafka Mock and set the expectations
-            kafkaMock = AsyncMock.startInMemoryBroker(KAFKA_MOCK_HOST, KAFKA_MOCK_PORT)
+            kafkaMock = KafkaMock.startInMemoryBroker(KAFKA_MOCK_HOST, KAFKA_MOCK_PORT)
             Thread.sleep(2000)
             kafkaMock.setExpectations(listOf(Expectation("product-queries", EXPECTED_NUMBER_OF_MESSAGES)))
         }
