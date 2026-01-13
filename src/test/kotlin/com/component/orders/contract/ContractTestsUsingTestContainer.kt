@@ -76,7 +76,7 @@ class ContractTestsUsingTestContainer {
         @Container
         private val kafkaMockContainer: GenericContainer<*> =
             object : GenericContainer<Nothing>(
-                "specmatic/specmatic-kafka",
+                "specmatic/specmatic-async",
             ) {
                 override fun start() {
                     super.start()
@@ -161,7 +161,7 @@ class ContractTestsUsingTestContainer {
                 )
                 waitingFor(
                     LogMessageWaitStrategy()
-                        .withRegEx("(?i).*KafkaMock has started.*")
+                        .withRegEx("(?i).*AsyncMock has started.*")
                         .withStartupTimeout(Duration.ofSeconds(30)),
                 )
                 withLogConsumer { print(it.utf8String) }
