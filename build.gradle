@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '2.3.0'
-    id 'org.springframework.boot' version '3.5.9'
+    id 'org.springframework.boot' version '4.0.2'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.3.0'
     id 'jacoco'
 }
@@ -28,7 +28,7 @@ jacocoTestReport {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.9')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:4.0.2')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
