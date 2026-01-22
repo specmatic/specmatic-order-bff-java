@@ -36,12 +36,16 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
 
     testImplementation("io.specmatic.openapi:specmatic-openapi:$specmaticOpenAPIVersion")
-    testImplementation("io.specmatic.async:specmatic-kafka:$specmaticKafkaVersion")
+    testImplementation("io.specmatic.async:specmatic-async:$specmaticAsyncVersion")
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation('org.assertj:assertj-core:3.27.6', 'org.junit.jupiter:junit-jupiter-api:5.14.1')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.14.1'
     testImplementation "org.testcontainers:junit-jupiter:1.21.4"
+
+    // vulnerable deps
+    testImplementation("at.yawk.lz4:lz4-java:1.10.2")
+    testImplementation("org.bitbucket.b_c:jose4j:0.9.6")
 }
 
 test {
@@ -78,4 +82,12 @@ tasks.register('dockerBuild', Exec) {
 bootJar {
     archiveClassifier = "all"
     version = ""
+}
+
+configurations {
+    implementation {
+        // Exclude vulnerable dependencies brought in by other libraries
+        // this is replaced by `at.yawk.lz4:lz4-java`
+        exclude group: 'org.lz4', module: 'lz4-java'
+    }
 }
