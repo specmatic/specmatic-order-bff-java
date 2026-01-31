@@ -3,9 +3,13 @@ contracts:
   - git:
       url: https://github.com/specmatic/specmatic-order-contracts.git
     provides:
-      - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
+      - specs:
+          - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
+        port: 8080
     consumes:
-      - io/specmatic/examples/store/openapi/api_order_v5.yaml
+      - specs:
+          - io/specmatic/examples/store/openapi/api_order_v5.yaml
+        port: 8090
       - io/specmatic/examples/store/asyncapi/kafka.yaml
 hooks:
   post_specmatic_response_processor: ./hooks/post_specmatic_response_processor.sh

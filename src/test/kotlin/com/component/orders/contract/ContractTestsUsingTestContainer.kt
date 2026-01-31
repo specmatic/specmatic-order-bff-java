@@ -53,6 +53,8 @@ class ContractTestsUsingTestContainer {
                         PortBinding(Ports.Binding.bindPort(HTTP_STUB_PORT), ExposedPort(HTTP_STUB_PORT)),
                     )
                 }.withExposedPorts(HTTP_STUB_PORT)
+                .withEnv("JAVA_OPTS", "-Dlogback.configurationFile=/root/.specmatic/logback.xml")
+                .withFileSystemBind("/Users/ketan/.specmatic/logback.xml", "/root/.specmatic/logback.xml", BindMode.READ_ONLY)
                 .withFileSystemBind(
                     "./src/test/resources/domain_service",
                     "/usr/src/app/examples",
