@@ -20,6 +20,13 @@ repositories {
     mavenCentral()
 }
 
+configurations.all {
+    resolutionStrategy.capabilitiesResolution.withCapability("org.lz4:lz4-java") {
+        // 1.8.1 is the latest available under org.lz4 on Maven Central.
+        select("org.lz4:lz4-java:1.8.1")
+    }
+}
+
 jacocoTestReport {
     dependsOn test
     reports {
