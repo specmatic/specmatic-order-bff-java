@@ -1,8 +1,9 @@
 package com.component.orders
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.specmatic.async.specmatic.kafka.VersionInfo as SpecmaticKafkaVersionInfo
-import io.specmatic.kafka.mock.KafkaMock
+import io.specmatic.async.constants.AsyncProtocol
+import io.specmatic.async.specmatic.async.VersionInfo as SpecmaticKafkaVersionInfo
+import io.specmatic.async.mock.AsyncMock
 import io.specmatic.specmatic.core.VersionInfo as SpecmaticCoreVersionInfo
 import io.specmatic.stub.ContractStub
 import io.specmatic.stub.createStub
@@ -20,7 +21,7 @@ import java.io.File
 class ApiTests {
     companion object {
         private lateinit var httpStub: ContractStub
-        private lateinit var kafkaMock: KafkaMock
+        private lateinit var kafkaMock: AsyncMock
 
         private const val STUB_PORT = 8090
 
@@ -33,7 +34,7 @@ class ApiTests {
             httpStub = createStub("localhost", STUB_PORT, strict = true)
 
             // Start kafka mock
-            kafkaMock = KafkaMock.startInMemoryBroker("localhost", 9092)
+            kafkaMock = AsyncMock.startInMemoryBroker("localhost", 9092, AsyncProtocol.KAFKA_PROTOCOL)
         }
 
         @AfterAll
