@@ -7,9 +7,9 @@ contracts:
         - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
         specType: openapi
         config:
-          baseUrl: http://host.docker.internal:8080
+          baseUrl: "{APP_URL:http://localhost:8080}"
           examples:
-            - /usr/src/app/src/test/resources/bff
+            - ./src/test/resources/bff
           resiliencyTests:
              enable: "all" # Resiliency tests mode for these specs
     consumes:
@@ -19,7 +19,7 @@ contracts:
         config:
           baseUrl: http://localhost:8090
           examples:
-            - /usr/src/app/src/test/resources/domain_service
+            - ./src/test/resources/domain_service
       - specs:
         - io/specmatic/examples/store/asyncapi/kafka.yaml
         specType: asyncapi
@@ -41,7 +41,8 @@ report:
           maxMissedEndpointsInSpec: 0
           enforce: true
 test:
-  filter: "PATH!='/health,/monitor/{id}'"
+  filter: "PATH!='/health,/monitor/{id},/swagger'"
+  actuatorUrl: "{APP_URL:http://localhost:8080}/actuator/mappings"
   resiliencyTests:
     enable: all
 

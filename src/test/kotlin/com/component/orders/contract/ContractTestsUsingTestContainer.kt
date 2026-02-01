@@ -1,8 +1,5 @@
 package com.component.orders.contract
 
-import com.github.dockerjava.api.model.ExposedPort
-import com.github.dockerjava.api.model.PortBinding
-import com.github.dockerjava.api.model.Ports
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.AfterAll
@@ -14,7 +11,6 @@ import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.*
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -26,53 +22,17 @@ import java.time.Duration
 @EnabledIf(value = "isNonCIOrLinux", disabledReason = "Run only on Linux in CI; all platforms allowed locally")
 class ContractTestsUsingTestContainer {
     companion object {
-        private const val APPLICATION_HOST = "host.docker.internal"
-        private const val APPLICATION_PORT = 8080
-        private const val HTTP_STUB_PORT = 8090
-        private const val ACTUATOR_MAPPINGS_ENDPOINT = "http://$APPLICATION_HOST:$APPLICATION_PORT/actuator/mappings"
-        private const val EXCLUDED_ENDPOINTS = "'/health,/monitor/{id},/swagger/v1/swagger,/swagger-ui.html'"
-        private const val KAFKA_PORT = 9092
+        private const val APP_URL = "http://host.docker.internal:8080"
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
         private const val EXPECTED_NUMBER_OF_MESSAGES = 11
         private val restTemplate: TestRestTemplate = TestRestTemplate()
 
         @JvmStatic
-        fun isNonCIOrLinux(): Boolean = System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
+        fun isNonCIOrLinux(): Boolean =
+            System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
         @Container
-        private val stubContainer: GenericContainer<*> =
-            GenericContainer("specmatic/enterprise")
-                .withCommand(
-                    "virtualize",
-                    "--examples=examples",
-                    "--port=$HTTP_STUB_PORT",
-                ).withCreateContainerCmdModifier { cmd ->
-                    cmd.hostConfig?.withPortBindings(
-                        PortBinding(Ports.Binding.bindPort(HTTP_STUB_PORT), ExposedPort(HTTP_STUB_PORT)),
-                    )
-                }.withExposedPorts(HTTP_STUB_PORT)
-                .withFileSystemBind(
-                    "./src/test/resources/domain_service",
-                    "/usr/src/app/examples",
-                    BindMode.READ_ONLY,
-                ).withFileSystemBind(
-                    "./src/test/resources/specmatic.yaml",
-                    "/usr/src/app/specmatic.yaml",
-                    BindMode.READ_ONLY,
-                ).withFileSystemBind(
-                    "./hooks",
-                    "/usr/src/app/hooks",
-                    BindMode.READ_ONLY
-                ).withFileSystemBind(
-                    "./build/reports/specmatic/stub",
-                    "/usr/src/app/build/reports/specmatic/stub",
-                    BindMode.READ_WRITE,
-                )
-                .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
-                .withLogConsumer { print(it.utf8String) }
-
-        @Container
-        private val kafkaMockContainer: GenericContainer<*> =
+        private val mockContainer: GenericContainer<*> =
             object : GenericContainer<Nothing>(
                 "specmatic/enterprise",
             ) {
@@ -133,67 +93,24 @@ class ContractTestsUsingTestContainer {
                         println("Error occurred while dumping the reports")
                     }
                 }
-
             }.apply {
-                withCommand("virtualize")
-                withCreateContainerCmdModifier { cmd ->
-                    cmd.hostConfig?.withPortBindings(
-                        PortBinding(
-                            Ports.Binding.bindPort(KAFKA_MOCK_API_SERVER_PORT),
-                            ExposedPort(KAFKA_MOCK_API_SERVER_PORT),
-                        ),
-                        PortBinding(Ports.Binding.bindPort(KAFKA_PORT), ExposedPort(KAFKA_PORT)),
-                    )
-                }
-                withExposedPorts(KAFKA_MOCK_API_SERVER_PORT, KAFKA_PORT)
-                withFileSystemBind(
-                    "./src/test/resources/specmatic.yaml",
-                    "/usr/src/app/specmatic.yaml",
-                    BindMode.READ_ONLY,
-                )
-                withFileSystemBind(
-                    "./build/reports/specmatic/kafka",
-                    "/usr/src/app/build/reports/specmatic/kafka",
-                    BindMode.READ_WRITE,
-                )
-                waitingFor(
-                    LogMessageWaitStrategy()
-                        .withRegEx("(?i).*AsyncMock has started.*")
-                        .withStartupTimeout(Duration.ofSeconds(30)),
-                )
+                withCommand("mock")
+                withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
+                withNetworkMode("host")
+                waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 withLogConsumer { print(it.utf8String) }
             }
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")
-                .withCommand(
-                    "test",
-                    "--host=$APPLICATION_HOST",
-                    "--port=$APPLICATION_PORT",
-                    "--filter=PATH!=$EXCLUDED_ENDPOINTS",
-                ).withEnv("endpointsAPI", ACTUATOR_MAPPINGS_ENDPOINT)
-                .withFileSystemBind("/Users/naresh/.specmatic/logback.xml", "/usr/src/app/logback.xml", BindMode.READ_ONLY)
-                .withFileSystemBind(
-                    "/Users/naresh/.specmatic",
-                    "/root/.specmatic",
-                    BindMode.READ_ONLY,
-                ).withFileSystemBind(
-                    "./src/test/resources/bff",
-                    "/usr/src/app/src/test/resources/bff",
-                    BindMode.READ_ONLY,
-                ).withFileSystemBind(
-                    "./src/test/resources/specmatic.yaml",
-                    "/usr/src/app/specmatic.yaml",
-                    BindMode.READ_ONLY,
-                ).withFileSystemBind(
-                    "./build/reports/specmatic",
-                    "/usr/src/app/build/reports/specmatic",
-                    BindMode.READ_WRITE,
-                ).waitingFor(
+                .withCommand("test")
+                .withEnv("APP_URL", APP_URL)
+                .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
+                .withNetworkMode("host")
+                .waitingFor(
                     Wait.forLogMessage(".*Tests run:.*", 1)
                         .withStartupTimeout(Duration.ofMinutes(2))
                 )
-                .withExtraHost("host.docker.internal", "host-gateway")
                 .withLogConsumer { print(it.utf8String) }
 
         @AfterAll
