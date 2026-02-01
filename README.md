@@ -10,6 +10,9 @@ Table of Contents
       * [View Specmatic Test Reports](#view-specmatic-test-reports)
     * [2. Using TestContainers](#2-using-testcontainers)
     * [3. Using Docker](#3-using-docker)
+      * [Start the backend service](#start-the-backend-service)
+      * [Start the domain api and Kafka mock server](#start-the-domain-api-and-kafka-mock-server)
+      * [Run contract tests](#run-contract-tests-1)
   * [For More Info](#for-more-info)
 <!-- TOC -->
 
@@ -66,24 +69,19 @@ gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContai
 ### 3. Using Docker
 
 For **Unix based systems** and **Windows Powershell**, execute the following commands in separate terminals:
+#### Start the backend service
 ```shell
-# Start the backend service
 ./gradlew bootRun
 ```
 
-## Mock
+#### Start the domain api and Kafka mock server
 ```shell
-docker run --rm --network host \
-  -v "$(pwd):/usr/src/app" \
-  specmatic/enterprise mock
+docker run --rm --network host -v "$(pwd):/usr/src/app" specmatic/enterprise mock
 ```
 
-## Test
+#### Run contract tests
 ```shell
-# Run contract tests
-docker run --rm --network host \
-  -v "$(pwd):/usr/src/app" \
-  specmatic/enterprise test
+docker run --rm --network host -v "$(pwd):/usr/src/app" specmatic/enterprise test
 ```
 
 For **Windows Command Prompt**, execute the following commands in separate terminals:
@@ -92,16 +90,12 @@ For **Windows Command Prompt**, execute the following commands in separate termi
 gradlew bootRun
 ```
 ```shell
-# Start the domain api mock server
-docker run --rm -p 8090:9000 -v "%cd%/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "%cd%/src/test/resources/domain_service:/usr/src/app/domain_service" specmatic/specmatic virtualize --examples /usr/src/app/domain_service
-```
-```shell
-# Start the kafka mock server
-docker run --rm -p 9092:9092 -p 2181:2181 -v "%cd%/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" specmatic/specmatic-kafka virtualize
+# Start the domain api and kafka mock server
+docker run --rm --network host -v "%cd%:/usr/src/app" specmatic/enterprise mock
 ```
 ```shell
 # Run contract tests
-docker run --rm --network host -v "%cd%/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "%cd%/src/test/resources/bff:/usr/src/app/bff" -v "%cd%/build/reports/specmatic:/usr/src/app/build/reports/specmatic" specmatic/specmatic test --port=8080 --examples /usr/src/app/bff
+docker run --rm --network host -v "%cd%:/usr/src/app" specmatic/enterprise test
 ```
 
 ## For More Info
