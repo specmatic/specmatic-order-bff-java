@@ -3,16 +3,23 @@ contracts:
   - git:
       url: https://github.com/specmatic/specmatic-order-contracts.git
     provides:
-      - host: host.docker.internal
-        port: 8080 # Provider port override for these specs
-        specs:
-        - "io/specmatic/examples/store/openapi/product_search_bff_v6.yaml"
-        resiliencyTests:
-           enable: "all" # Resiliency tests mode for these specs
+      - specs:
+        - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
+        specType: openapi
+        config:
+          baseUrl: http://host.docker.internal:8080
+          examples:
+            - /usr/src/app/src/test/resources/bff
+          resiliencyTests:
+             enable: "all" # Resiliency tests mode for these specs
     consumes:
       - specs:
         - io/specmatic/examples/store/openapi/api_order_v5.yaml
-        baseUrl: http://localhost:8090
+        specType: openapi
+        config:
+          baseUrl: http://localhost:8090
+          examples:
+            - /usr/src/app/src/test/resources/domain_service
       - specs:
         - io/specmatic/examples/store/asyncapi/kafka.yaml
         specType: asyncapi
@@ -38,12 +45,8 @@ test:
   resiliencyTests:
     enable: all
 
-examples:
-  - /usr/src/app/src/test/resources/bff
-  - /usr/src/app/src/test/resources/domain_service
-
 #examples:
-#  - /usr/src/app/resources/bff
-#  - /usr/src/app/domain_service
+#  - /usr/src/app/src/test/resources/bff
+#  - /usr/src/app/src/test/resources/domain_service
 
 #license_path: "/root/specmatic-license.txt" # License file path

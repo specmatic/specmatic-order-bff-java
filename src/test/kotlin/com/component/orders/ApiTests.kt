@@ -2,7 +2,7 @@ package com.component.orders
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.specmatic.async.constants.AsyncProtocol
-import io.specmatic.async.specmatic.async.VersionInfo as SpecmaticKafkaVersionInfo
+import io.specmatic.enterprise.async.VersionInfo as SpecmaticKafkaVersionInfo
 import io.specmatic.async.mock.AsyncMock
 import io.specmatic.specmatic.core.VersionInfo as SpecmaticCoreVersionInfo
 import io.specmatic.stub.ContractStub

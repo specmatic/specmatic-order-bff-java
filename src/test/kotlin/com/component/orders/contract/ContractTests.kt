@@ -2,8 +2,8 @@ package com.component.orders.contract
 
 import io.specmatic.async.constants.AsyncProtocol
 import io.specmatic.async.mock.AsyncMock
-import io.specmatic.async.specmatic.async.VersionInfo as AsyncVersion
-import io.specmatic.openapi.VersionInfo as OpenapiVersionInfo
+import io.specmatic.enterprise.async.VersionInfo as AsyncVersion
+import io.specmatic.enterprise.openapi.VersionInfo as OpenapiVersionInfo
 import io.specmatic.async.mock.model.Expectation
 import io.specmatic.stub.ContractStub
 import io.specmatic.stub.createStub
