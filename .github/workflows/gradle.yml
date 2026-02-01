@@ -24,14 +24,20 @@ jobs:
         distribution: 'temurin'
         java-version: ${{ matrix.java }}
 
+    - name: Mark contract repo directory as safe
+      run: git config --global --add safe.directory /usr/src/app/.specmatic/repos/specmatic-order-contracts
+
     - name: Save Specmatic license
       if: github.ref == 'refs/heads/main'
       run: |
         mkdir -p ~/.specmatic
         echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
-    - name: Build BFF project with Gradle
-      run: ./gradlew build
+    - name: Run BFF Contract Test using Specmatic JUnit Plugin
+      run: ./gradlew test --tests="com.component.orders.contract.ContractTests"
+
+    - name: Run BFF Contract Test using Specmatic Docker Image via TestContainer
+      run: ./gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
 
     - name: Upload CTRF Report
       uses: actions/upload-artifact@v6
