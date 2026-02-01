@@ -22,7 +22,7 @@ import java.time.Duration
 @EnabledIf(value = "isNonCIOrLinux", disabledReason = "Run only on Linux in CI; all platforms allowed locally")
 class ContractTestsUsingTestContainer {
     companion object {
-        private const val APP_URL = "http://host.docker.internal:8080"
+        private const val APP_URL = "http://localhost:8080"
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
         private const val EXPECTED_NUMBER_OF_MESSAGES = 11
         private val restTemplate: TestRestTemplate = TestRestTemplate()
@@ -39,7 +39,7 @@ class ContractTestsUsingTestContainer {
                 override fun start() {
                     super.start()
                     // wait for container to stabilize and then set expectations
-                    Thread.sleep(200)
+                    Thread.sleep(20000)
                     setExpectations()
                 }
 
