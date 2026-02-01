@@ -72,7 +72,7 @@ jobs:
           -v ${{ github.workspace }}/specmatic.yaml:/workspace/specmatic.yaml \
           -v ~/.specmatic:/root/.specmatic \
           -w /workspace \
-          specmatic/specmatic \
+          specmatic/enterprise \
           send-report \
           --metadata build_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} \
           --branch-name ${{ github.ref_name }} \
