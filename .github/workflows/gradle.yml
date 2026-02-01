@@ -24,9 +24,6 @@ jobs:
         distribution: 'temurin'
         java-version: ${{ matrix.java }}
 
-    - name: Mark contract repo directory as safe
-      run: git config --global --add safe.directory /usr/src/app/.specmatic/repos/specmatic-order-contracts
-
     - name: Save Specmatic license
       if: github.ref == 'refs/heads/main'
       run: |

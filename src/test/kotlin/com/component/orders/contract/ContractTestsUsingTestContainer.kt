@@ -38,7 +38,7 @@ class ContractTestsUsingTestContainer {
                 override fun start() {
                     super.start()
                     // wait for container to stabilize and then set expectations
-                    Thread.sleep(20000)
+                    Thread.sleep(40000)
                     setExpectations()
                 }
 
