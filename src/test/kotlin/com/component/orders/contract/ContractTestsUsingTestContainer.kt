@@ -22,7 +22,6 @@ import java.time.Duration
 @EnabledIf(value = "isNonCIOrLinux", disabledReason = "Run only on Linux in CI; all platforms allowed locally")
 class ContractTestsUsingTestContainer {
     companion object {
-        private const val APP_URL = "http://localhost:8080"
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
         private const val EXPECTED_NUMBER_OF_MESSAGES = 11
         private val restTemplate: TestRestTemplate = TestRestTemplate()
@@ -104,7 +103,6 @@ class ContractTestsUsingTestContainer {
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")
                 .withCommand("test")
-                .withEnv("APP_URL", APP_URL)
                 .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
                 .withNetworkMode("host")
                 .waitingFor(
