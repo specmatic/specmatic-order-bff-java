@@ -31,7 +31,7 @@ jobs:
         echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
     - name: Run BFF Contract Test using Specmatic JUnit Plugin
-      run: ./gradlew test jacocoTestReport --tests="com.component.orders.contract.ContractTests"
+      run: ./gradlew test --tests="com.component.orders.contract.ContractTests"
 
     - name: Upload CTRF Report
       uses: actions/upload-artifact@v6
@@ -47,6 +47,9 @@ jobs:
       if: always() # Run even if tests fail
       with:
         report-path: ${{ env.CTRF_REPORT_PATH }}
+
+    - name: Run coverage report without re-running the tests
+      run: ./gradlew jacocoTestReport -x test
 
     - name: Generate JaCoCo Badge
       id: jacoco
