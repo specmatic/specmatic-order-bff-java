@@ -1,0 +1,49 @@
+version: 2
+contracts:
+  - git:
+      url: https://github.com/specmatic/specmatic-order-contracts.git
+    provides:
+      - host: host.docker.internal
+        port: 8080 # Provider port override for these specs
+        specs:
+        - "io/specmatic/examples/store/openapi/product_search_bff_v6.yaml"
+        resiliencyTests:
+           enable: "all" # Resiliency tests mode for these specs
+    consumes:
+      - specs:
+        - io/specmatic/examples/store/openapi/api_order_v5.yaml
+        baseUrl: http://localhost:8090
+      - specs:
+        - io/specmatic/examples/store/asyncapi/kafka.yaml
+        specType: asyncapi
+        config:
+          inMemoryBroker:
+            host: localhost
+            port: 9092
+          servers:
+            - host: localhost:9092
+              protocol: kafka
+hooks:
+  post_specmatic_response_processor: ./hooks/post_specmatic_response_processor.sh
+report:
+  types:
+    APICoverage:
+      OpenAPI:
+        successCriteria:
+          minThresholdPercentage: 70
+          maxMissedEndpointsInSpec: 0
+          enforce: true
+test:
+  filter: "PATH!='/health,/monitor/{id}'"
+  resiliencyTests:
+    enable: all
+
+examples:
+  - /usr/src/app/src/test/resources/bff
+  - /usr/src/app/src/test/resources/domain_service
+
+#examples:
+#  - /usr/src/app/resources/bff
+#  - /usr/src/app/domain_service
+
+#license_path: "/root/specmatic-license.txt" # License file path

@@ -51,6 +51,8 @@ gradlew test --tests="com.component.orders.contract.ContractTests"
 
 ### 2. Using TestContainers
 
+Note: If you are using Docker Desktop, ensure that Networking is set to use 'host' mode.
+
 For **Unix based systems** and **Windows Powershell**:
 ```shell
 ./gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
@@ -68,17 +70,20 @@ For **Unix based systems** and **Windows Powershell**, execute the following com
 # Start the backend service
 ./gradlew bootRun
 ```
+
+## Mock
 ```shell
-# Start the domain api mock server
-docker run --rm -p 8090:9000 -v "$(pwd)/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "$(pwd)/src/test/resources/domain_service:/usr/src/app/domain_service" specmatic/specmatic virtualize --examples /usr/src/app/domain_service
+docker run --rm --network host \
+  -v "$(pwd):/usr/src/app" \
+  specmatic/enterprise mock
 ```
-```shell
-# Start the kafka mock server
-docker run --rm -p 9092:9092 -p 2181:2181 -v "$(pwd)/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" specmatic/specmatic-kafka virtualize
-```
+
+## Test
 ```shell
 # Run contract tests
-docker run --rm --network host -v "$(pwd)/src/test/resources/specmatic.yaml:/usr/src/app/specmatic.yaml" -v "$(pwd)/src/test/resources/bff:/usr/src/app/bff" -v "$(pwd)/build/reports/specmatic:/usr/src/app/build/reports/specmatic" specmatic/specmatic test --port=8080 --examples /usr/src/app/bff
+docker run --rm --network host \
+  -v "$(pwd):/usr/src/app" \
+  specmatic/enterprise test
 ```
 
 For **Windows Command Prompt**, execute the following commands in separate terminals:

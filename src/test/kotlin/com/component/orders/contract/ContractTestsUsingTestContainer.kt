@@ -16,7 +16,6 @@ import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy
 import org.testcontainers.containers.wait.strategy.Wait
-import org.testcontainers.images.PullPolicy
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.net.URI
@@ -42,8 +41,7 @@ class ContractTestsUsingTestContainer {
 
         @Container
         private val stubContainer: GenericContainer<*> =
-            GenericContainer("specmatic/specmatic-openapi")
-                .withImagePullPolicy (PullPolicy.alwaysPull())
+            GenericContainer("specmatic/enterprise")
                 .withCommand(
                     "virtualize",
                     "--examples=examples",
@@ -76,7 +74,7 @@ class ContractTestsUsingTestContainer {
         @Container
         private val kafkaMockContainer: GenericContainer<*> =
             object : GenericContainer<Nothing>(
-                "specmatic/specmatic-kafka",
+                "specmatic/enterprise",
             ) {
                 override fun start() {
                     super.start()
@@ -130,14 +128,13 @@ class ContractTestsUsingTestContainer {
                             String::class.java,
                         )
                     if (response.statusCode == HttpStatusCode.valueOf(200)) {
-                        println("Reports dumped succesfully!")
+                        println("Reports dumped successfully!")
                     } else {
                         println("Error occurred while dumping the reports")
                     }
                 }
 
             }.apply {
-                withImagePullPolicy (PullPolicy.alwaysPull())
                 withCommand("virtualize")
                 withCreateContainerCmdModifier { cmd ->
                     cmd.hostConfig?.withPortBindings(
@@ -161,22 +158,26 @@ class ContractTestsUsingTestContainer {
                 )
                 waitingFor(
                     LogMessageWaitStrategy()
-                        .withRegEx("(?i).*KafkaMock has started.*")
+                        .withRegEx("(?i).*AsyncMock has started.*")
                         .withStartupTimeout(Duration.ofSeconds(30)),
                 )
                 withLogConsumer { print(it.utf8String) }
             }
 
         private val testContainer: GenericContainer<*> =
-            GenericContainer("specmatic/specmatic-openapi")
-                .withImagePullPolicy (PullPolicy.alwaysPull())
+            GenericContainer("specmatic/enterprise")
                 .withCommand(
                     "test",
                     "--host=$APPLICATION_HOST",
                     "--port=$APPLICATION_PORT",
                     "--filter=PATH!=$EXCLUDED_ENDPOINTS",
                 ).withEnv("endpointsAPI", ACTUATOR_MAPPINGS_ENDPOINT)
+                .withFileSystemBind("/Users/naresh/.specmatic/logback.xml", "/usr/src/app/logback.xml", BindMode.READ_ONLY)
                 .withFileSystemBind(
+                    "/Users/naresh/.specmatic",
+                    "/root/.specmatic",
+                    BindMode.READ_ONLY,
+                ).withFileSystemBind(
                     "./src/test/resources/bff",
                     "/usr/src/app/src/test/resources/bff",
                     BindMode.READ_ONLY,
