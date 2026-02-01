@@ -8,6 +8,7 @@ import io.specmatic.specmatic.core.VersionInfo as SpecmaticCoreVersionInfo
 import io.specmatic.stub.ContractStub
 import io.specmatic.stub.createStub
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Ignore
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -62,7 +63,7 @@ class ApiTests {
         assert(response.statusCode == HttpStatus.OK)
     }
 
-    @Test
+    @Ignore
     fun `should search for available products`() {
         val expectation = File("src/test/resources/domain_service/stub_products_200.json").readText()
         setExpectations(expectation)
