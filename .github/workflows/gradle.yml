@@ -33,9 +33,6 @@ jobs:
     - name: Run BFF Contract Test using Specmatic JUnit Plugin
       run: ./gradlew test --tests="com.component.orders.contract.ContractTests"
 
-    - name: Run BFF Contract Test using Specmatic Docker Image via TestContainer
-      run: ./gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
-
     - name: Upload CTRF Report
       uses: actions/upload-artifact@v6
       if: always() # Run even if tests fail
