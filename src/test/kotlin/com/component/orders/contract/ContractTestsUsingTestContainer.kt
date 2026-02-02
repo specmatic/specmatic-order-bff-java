@@ -1,5 +1,7 @@
 package com.component.orders.contract
 
+import io.specmatic.async.mock.model.Expectation
+import io.specmatic.async.mock.model.ExpectationsRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.AfterAll
@@ -30,75 +32,73 @@ class ContractTestsUsingTestContainer {
         fun isNonCIOrLinux(): Boolean =
             System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
+        private fun mockContainerWithSetExpectations(): GenericContainer<*> = object : GenericContainer<Nothing>(
+            "specmatic/enterprise",
+        ) {
+            override fun start() {
+                super.start()
+                // wait for container to stabilize and then set expectations
+                Thread.sleep(20000)
+                setExpectations()
+            }
+
+            override fun stop() {
+                dumpReports()
+                super.stop()
+            }
+
+            private fun setExpectations() {
+                println("Setting expectations on kafka topic(s)..")
+                val expectations = ExpectationsRequest(
+                    expectations = listOf(
+                        Expectation("product-queries", EXPECTED_NUMBER_OF_MESSAGES),
+                    )
+                )
+                val response: ResponseEntity<String> =
+                    restTemplate.exchange(
+                        URI("http://localhost:$KAFKA_MOCK_API_SERVER_PORT/_expectations"),
+                        HttpMethod.POST,
+                        HttpEntity(
+                            expectations,
+                            HttpHeaders().apply {
+                                contentType = MediaType.APPLICATION_JSON
+                            },
+                        ),
+                        String::class.java,
+                    )
+                if (response.statusCode == HttpStatusCode.valueOf(200)) {
+                    println("Expectations set successfully!")
+                    return
+                }
+                println("Expectations setting failed: ${response.body}")
+                return
+            }
+
+            private fun dumpReports() {
+                println("Dumping kafka mock reports..")
+                val response: ResponseEntity<String> =
+                    restTemplate.exchange(
+                        URI("http://localhost:$KAFKA_MOCK_API_SERVER_PORT/stop"),
+                        HttpMethod.POST,
+                        HttpEntity(""),
+                        String::class.java,
+                    )
+                if (response.statusCode == HttpStatusCode.valueOf(200)) {
+                    println("Reports dumped successfully!")
+                } else {
+                    println("Error occurred while dumping the reports")
+                }
+            }
+        }
+
         @Container
         private val mockContainer: GenericContainer<*> =
-            object : GenericContainer<Nothing>(
-                "specmatic/enterprise",
-            ) {
-                override fun start() {
-                    super.start()
-                    // wait for container to stabilize and then set expectations
-                    Thread.sleep(20000)
-                    setExpectations()
-                }
-
-                override fun stop() {
-                    dumpReports()
-                    super.stop()
-                }
-
-                private fun setExpectations() {
-                    println("Setting expectations on kafka topic(s)..")
-                    val response: ResponseEntity<String> =
-                        restTemplate.exchange(
-                            URI("http://localhost:$KAFKA_MOCK_API_SERVER_PORT/_expectations"),
-                            HttpMethod.POST,
-                            HttpEntity(
-                                """
-                                {
-                                    "expectations": [
-                                        {
-                                          "topic": "product-queries",
-                                          "count": $EXPECTED_NUMBER_OF_MESSAGES
-                                        }
-                                    ]
-                                }
-                                """.trimIndent(),
-                                HttpHeaders().apply {
-                                    contentType = MediaType.APPLICATION_JSON
-                                },
-                            ),
-                            String::class.java,
-                        )
-                    if (response.statusCode == HttpStatusCode.valueOf(200)) {
-                        println("Expectations set successfully!")
-                    } else {
-                        println("Expectations setting failed: ${response.body}")
-                    }
-                }
-
-                private fun dumpReports() {
-                    println("Dumping kafka mock reports..")
-                    val response: ResponseEntity<String> =
-                        restTemplate.exchange(
-                            URI("http://localhost:$KAFKA_MOCK_API_SERVER_PORT/stop"),
-                            HttpMethod.POST,
-                            HttpEntity(""),
-                            String::class.java,
-                        )
-                    if (response.statusCode == HttpStatusCode.valueOf(200)) {
-                        println("Reports dumped successfully!")
-                    } else {
-                        println("Error occurred while dumping the reports")
-                    }
-                }
-            }.apply {
-                withCommand("mock")
-                withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
-                withNetworkMode("host")
-                waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
-                withLogConsumer { print(it.utf8String) }
-            }
+            mockContainerWithSetExpectations()
+                .withCommand("mock")
+                .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
+                .withNetworkMode("host")
+                .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
+                .withLogConsumer { print(it.utf8String) }
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")

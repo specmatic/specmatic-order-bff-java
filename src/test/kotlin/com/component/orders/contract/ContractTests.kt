@@ -1,5 +1,6 @@
 package com.component.orders.contract
 
+import io.specmatic.async.mock.AsyncMock
 import io.specmatic.enterprise.SpecmaticContractTest
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.AfterAll
@@ -47,9 +48,10 @@ class ContractTests : SpecmaticContractTest() {
                 )
             if (response.statusCode == HttpStatusCode.valueOf(200)) {
                 println("Expectations set successfully!")
-            } else {
-                println("Expectations setting failed: ${response.body}")
+                return
             }
+            println("Expectations setting failed: ${response.body}")
+            return
         }
 
         @JvmStatic
