@@ -31,7 +31,7 @@ jobs:
         echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
     - name: Run BFF Contract Test using Specmatic JUnit Plugin
-      run: ./gradlew build
+      run: ./gradlew test assemble
 
     - name: Upload CTRF Report
       uses: actions/upload-artifact@v6
