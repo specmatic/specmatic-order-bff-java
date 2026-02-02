@@ -94,6 +94,7 @@ class ContractTestsUsingTestContainer {
         @Container
         private val mockContainer: GenericContainer<*> =
             mockContainerWithSetExpectations()
+                .withReuse(false)
                 .withCommand("mock")
                 .withFileSystemBind("./src", "/usr/src/app/src", BindMode.READ_ONLY)
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
