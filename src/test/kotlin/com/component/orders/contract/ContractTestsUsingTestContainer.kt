@@ -95,7 +95,9 @@ class ContractTestsUsingTestContainer {
         private val mockContainer: GenericContainer<*> =
             mockContainerWithSetExpectations()
                 .withCommand("mock")
-                .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
+                .withFileSystemBind("./src", "/usr/src/app/src", BindMode.READ_ONLY)
+                .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
+                .withFileSystemBind("./specmatic.yaml", "/usr/src/app/specmatic.yaml", BindMode.READ_ONLY,)
                 .withNetworkMode("host")
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
@@ -103,7 +105,9 @@ class ContractTestsUsingTestContainer {
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")
                 .withCommand("test")
-                .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
+                .withFileSystemBind("./src", "/usr/src/app/src", BindMode.READ_ONLY)
+                .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
+                .withFileSystemBind("./specmatic.yaml", "/usr/src/app/specmatic.yaml", BindMode.READ_ONLY,)
                 .withNetworkMode("host")
                 .waitingFor(
                     Wait.forLogMessage(".*Tests run:.*", 1)
