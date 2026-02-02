@@ -1,6 +1,5 @@
 package com.component.orders.contract
 
-import io.specmatic.async.mock.AsyncMock
 import io.specmatic.enterprise.SpecmaticContractTest
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.AfterAll
@@ -8,16 +7,12 @@ import org.junit.jupiter.api.BeforeAll
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatusCode
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import org.springframework.http.*
 import java.net.URI
 
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-class ContractTests : SpecmaticContractTest() {
+class ContractTests : SpecmaticContractTest {
     companion object {
         private const val KAFKA_MOCK_API_SERVER_PORT = 9999
         private const val EXPECTED_NUMBER_OF_MESSAGES = 11
