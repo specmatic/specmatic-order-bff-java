@@ -30,11 +30,8 @@ jobs:
         mkdir -p ~/.specmatic
         echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
-    - name: Run BFF Contract Test using Specmatic JUnit Plugin
-      run: ./gradlew test --tests="com.component.orders.contract.ContractTests"
-
-    - name: Build JAR
-      run: ./gradlew assemble -x test
+    - name: Run tests
+      run: ./gradlew build
 
     - name: Upload CTRF Report
       uses: actions/upload-artifact@v6
