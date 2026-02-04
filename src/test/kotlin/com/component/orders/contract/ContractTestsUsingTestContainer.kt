@@ -99,6 +99,7 @@ class ContractTestsUsingTestContainer {
                 .withFileSystemBind("./src", "/usr/src/app/src", BindMode.READ_ONLY)
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
                 .withFileSystemBind("./specmatic.yaml", "/usr/src/app/specmatic.yaml", BindMode.READ_ONLY,)
+                .withFileSystemBind("./build/reports/specmatic", "/usr/src/app/build/reports/specmatic", BindMode.READ_WRITE)
                 .withNetworkMode("host")
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
@@ -109,6 +110,7 @@ class ContractTestsUsingTestContainer {
                 .withFileSystemBind("./src", "/usr/src/app/src", BindMode.READ_ONLY)
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
                 .withFileSystemBind("./specmatic.yaml", "/usr/src/app/specmatic.yaml", BindMode.READ_ONLY,)
+                .withFileSystemBind("./build/reports/specmatic", "/usr/src/app/build/reports/specmatic", BindMode.READ_WRITE)
                 .withNetworkMode("host")
                 .waitingFor(
                     Wait.forLogMessage(".*Tests run:.*", 1)
