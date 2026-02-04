@@ -33,7 +33,7 @@ dependencies {
     implementation ('org.springframework.kafka:spring-kafka:3.3.11'){
         exclude group: 'org.lz4', module: 'lz4-java'
     }
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
     testImplementation("io.specmatic.enterprise:executable:$specmaticEnterpriseVersion")
 
