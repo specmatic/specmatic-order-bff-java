@@ -7,15 +7,12 @@ import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 class ContractTests : SpecmaticContractTest {
     companion object {
-        private const val KAFKA_MOCK_API_SERVER_PORT = 9999
         private const val EXPECTED_NUMBER_OF_MESSAGES = 11
-        private val restTemplate: TestRestTemplate = TestRestTemplate()
 
         private fun setExpectations() {
             println("Setting expectations on kafka topic(s)..")
