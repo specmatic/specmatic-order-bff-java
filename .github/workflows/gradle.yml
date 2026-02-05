@@ -30,6 +30,9 @@ jobs:
         mkdir -p ~/.specmatic
         echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
+    - name: Download Specmatic Enterprise Jar
+      run: curl https://docs.specmatic.io/install-specmatic-enterprise.sh | bash
+
     - name: Run tests
       run: ./gradlew build
 

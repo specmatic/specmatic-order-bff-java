@@ -13,7 +13,6 @@ import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @EnabledIf(value = "isNonCIOrLinux", disabledReason = "Run only on Linux in CI; all platforms allowed locally")
-@Disabled("Enable once fixed")
 class ContractTestUsingCLITest {
     @Test
     @Throws(Exception::class)
