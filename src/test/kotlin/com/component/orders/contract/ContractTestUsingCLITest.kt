@@ -6,7 +6,6 @@ import io.specmatic.enterprise.SpecmaticContractTest
 import org.assertj.core.api.Assertions.fail
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
 import org.springframework.boot.test.context.SpringBootTest
