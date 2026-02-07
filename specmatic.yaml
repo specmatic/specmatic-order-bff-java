@@ -18,13 +18,16 @@ dependencies:
           examples:
             - directories:
                 - ./src/test/resources/domain_service
-          adapters:
-            post_specmatic_response_processor: ./hooks/post_specmatic_response_processor.sh
 
     - service:
         $ref: "#/components/services/kafkaService"
         runOptions:
           $ref: "#/components/runOptions/kafkaServiceMock"
+
+  data:
+    adapters:
+      post_specmatic_response_processor: ./hooks/post_specmatic_response_processor.sh
+
 specmatic:
   governance:
     successCriteria:
@@ -47,9 +50,7 @@ components:
             source:
               $ref: "#/components/sources/specmaticOrderContracts"
             specs:
-              - spec:
-                  id: productSearchBffSpec
-                  path: io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
+              - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
     orderApiService:
       description: Order API Service
       definitions:
@@ -57,9 +58,7 @@ components:
             source:
               $ref: "#/components/sources/specmaticOrderContracts"
             specs:
-              - spec:
-                  id: orderApiSpec
-                  path: io/specmatic/examples/store/openapi/api_order_v5.yaml
+              - io/specmatic/examples/store/openapi/api_order_v5.yaml
     kafkaService:
       description: Kafka AsyncAPI Service
       definitions:
@@ -77,16 +76,10 @@ components:
         baseUrl: "{APP_URL:http://localhost:8080}"
         filter: "PATH!='/health,/monitor/{id},/swagger'"
         actuatorUrl: "{APP_URL:http://localhost:8080}/actuator/mappings"
-        specs:
-          - spec:
-              id: productSearchBffSpec
     orderApiServiceMock:
       openapi:
         type: mock
         baseUrl: http://localhost:8090
-        specs:
-          - spec:
-              id: orderApiSpec
     kafkaServiceMock:
       asyncapi:
         type: mock
