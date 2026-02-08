@@ -31,7 +31,7 @@ dependencies:
 specmatic:
   governance:
     successCriteria:
-      minCoveragePercentage: 0
+      minCoveragePercentage: 70
       maxMissedOperationsInSpec: 0
       enforce: true
   settings:
@@ -66,9 +66,7 @@ components:
             source:
               $ref: "#/components/sources/specmaticOrderContracts"
             specs:
-              - spec:
-                  id: kafkaSpec
-                  path: io/specmatic/examples/store/asyncapi/kafka.yaml
+              - io/specmatic/examples/store/asyncapi/kafka.yaml
   runOptions:
     productSearchBffServiceTest:
       openapi:
@@ -83,12 +81,9 @@ components:
     kafkaServiceMock:
       asyncapi:
         type: mock
-        specs:
-          - spec:
-              id: kafkaSpec
-              inMemoryBroker:
-                host: localhost
-                port: 9092
-              servers:
-                - host: "localhost:9092"
-                  protocol: kafka
+        inMemoryBroker:
+          host: localhost
+          port: 9092
+        servers:
+          - host: "localhost:9092"
+            protocol: kafka
