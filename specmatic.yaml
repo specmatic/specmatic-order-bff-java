@@ -1,53 +1,89 @@
-version: 2
-contracts:
-  - git:
-      url: https://github.com/specmatic/specmatic-order-contracts.git
-    provides:
-      - specs:
-        - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
-        specType: openapi
-        config:
-          baseUrl: "{APP_URL:http://localhost:8080}"
-          examples:
+version: 3
+systemUnderTest:
+  service:
+    $ref: "#/components/services/productSearchBffService"
+    runOptions:
+      $ref: "#/components/runOptions/productSearchBffServiceTest"
+    data:
+      examples:
+        - directories:
             - ./src/test/resources/bff
-          resiliencyTests:
-             enable: "all" # Resiliency tests mode for these specs
-    consumes:
-      - specs:
-        - io/specmatic/examples/store/openapi/api_order_v5.yaml
-        specType: openapi
-        config:
-          baseUrl: http://localhost:8090
+dependencies:
+  services:
+    - service:
+        $ref: "#/components/services/orderApiService"
+        runOptions:
+          $ref: "#/components/runOptions/orderApiServiceMock"
+        data:
           examples:
-            - ./src/test/resources/domain_service
-      - specs:
-        - io/specmatic/examples/store/asyncapi/kafka.yaml
-        specType: asyncapi
-        config:
-          inMemoryBroker:
-            host: localhost
-            port: 9092
-          servers:
-            - host: localhost:9092
-              protocol: kafka
-hooks:
-  post_specmatic_response_processor: ./hooks/post_specmatic_response_processor.sh
-report:
-  types:
-    APICoverage:
-      OpenAPI:
-        successCriteria:
-          minThresholdPercentage: 70
-          maxMissedEndpointsInSpec: 0
-          enforce: true
-test:
-  filter: "PATH!='/health,/monitor/{id},/swagger'"
-  actuatorUrl: "{APP_URL:http://localhost:8080}/actuator/mappings"
-  resiliencyTests:
-    enable: all
+            - directories:
+                - ./src/test/resources/domain_service
 
-#examples:
-#  - /usr/src/app/src/test/resources/bff
-#  - /usr/src/app/src/test/resources/domain_service
+    - service:
+        $ref: "#/components/services/kafkaService"
+        runOptions:
+          $ref: "#/components/runOptions/kafkaServiceMock"
 
-#license_path: "/root/specmatic-license.txt" # License file path
+  data:
+    adapters:
+      post_specmatic_response_processor: ./hooks/post_specmatic_response_processor.sh
+
+specmatic:
+  governance:
+    successCriteria:
+      minCoveragePercentage: 70
+      maxMissedOperationsInSpec: 0
+      enforce: true
+  settings:
+    test:
+      schemaResiliencyTests: all
+components:
+  sources:
+    specmaticOrderContracts:
+      git:
+        url: https://github.com/specmatic/specmatic-order-contracts.git
+  services:
+    productSearchBffService:
+      description: Product Search BFF Service
+      definitions:
+        - definition:
+            source:
+              $ref: "#/components/sources/specmaticOrderContracts"
+            specs:
+              - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
+    orderApiService:
+      description: Order API Service
+      definitions:
+        - definition:
+            source:
+              $ref: "#/components/sources/specmaticOrderContracts"
+            specs:
+              - io/specmatic/examples/store/openapi/api_order_v5.yaml
+    kafkaService:
+      description: Kafka AsyncAPI Service
+      definitions:
+        - definition:
+            source:
+              $ref: "#/components/sources/specmaticOrderContracts"
+            specs:
+              - io/specmatic/examples/store/asyncapi/kafka.yaml
+  runOptions:
+    productSearchBffServiceTest:
+      openapi:
+        type: test
+        baseUrl: "{APP_URL:http://localhost:8080}"
+        filter: "PATH!='/health,/monitor/{id},/swagger'"
+        actuatorUrl: "{APP_URL:http://localhost:8080}/actuator/mappings"
+    orderApiServiceMock:
+      openapi:
+        type: mock
+        baseUrl: http://localhost:8090
+    kafkaServiceMock:
+      asyncapi:
+        type: mock
+        inMemoryBroker:
+          host: localhost
+          port: 9092
+        servers:
+          - host: "localhost:9092"
+            protocol: kafka
