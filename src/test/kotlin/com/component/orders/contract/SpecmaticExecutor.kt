@@ -56,7 +56,7 @@ internal class SpecmaticExecutor(command: String) {
         if (!current.waitFor(10, TimeUnit.SECONDS)) {
             try {
                 current.destroy()
-                current.waitFor(1, TimeUnit.SECONDS)
+                current.waitFor(5, TimeUnit.SECONDS)
             } catch (_: Exception) {
             }
             if (current.isAlive) {
