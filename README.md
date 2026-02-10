@@ -36,7 +36,7 @@ Following are the specifications used in this project:
 
 ## Run Contract Tests
 
-Our contract test will start the Specmatic stub server for Domain API and Kafka mock using [specmatic config](src/test/resources/specmatic.yaml) and run contract tests against the BFF using Specmatic.
+Our contract test will start the specmatic mock server for Domain API and Kafka mock using [specmatic config](src/test/resources/specmatic.yaml) and run contract tests against the BFF using Specmatic.
 
 ### 1. Using Specmatic-JUnit Helper
 
