@@ -9,7 +9,8 @@ Table of Contents
     * [1. Using Specmatic-JUnit Helper](#1-using-specmatic-junit-helper)
       * [View Specmatic Test Reports](#view-specmatic-test-reports)
     * [2. Using TestContainers](#2-using-testcontainers)
-    * [3. Using Docker](#3-using-docker)
+    * [3. Using CLI based test execution](#2-using-cli-based-test-execution)
+    * [4. Using Docker](#3-using-docker)
       * [Start the backend service](#start-the-backend-service)
       * [Start the domain api and Kafka mock server](#start-the-domain-api-and-kafka-mock-server)
       * [Run contract tests](#run-contract-tests-1)
@@ -66,7 +67,20 @@ For **Windows Command Prompt**:
 gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContainer"
 ```
 
-### 3. Using Docker
+### 3. Using CLI based test execution
+
+Note: Please make sure you download the Specmatic Enterprise jar from [Specmatic's download page](https://docs.specmatic.io/download#specmatic-enterprise).
+
+For **Unix based systems** and **Windows Powershell**:
+```shell
+./gradlew test --tests="com.component.orders.contract.ContractTestUsingCLITest"
+```
+
+For **Windows Command Prompt**:
+```shell
+gradlew test --tests="com.component.orders.contract.ContractTestUsingCLITest"
+
+### 4. Using Docker
 
 For **Unix based systems** and **Windows Powershell**, execute the following commands in separate terminals:
 #### Start the backend service
