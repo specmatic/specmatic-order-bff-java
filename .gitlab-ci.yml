@@ -3,7 +3,7 @@ stages:
 
 build:
   stage: build
-  image: amazoncorretto:17.0.17-alpine
+  image: amazoncorretto:25.0.2-alpine
   services:
     - name: docker:dind
       alias: docker
