@@ -43,7 +43,8 @@ class ContractTestsUsingTestContainer {
             }
 
             override fun stop() {
-                dumpReports()
+                // CLI equivalent of - docker stop --time 300 <containerId>
+                dockerClient.stopContainerCmd(containerId).withTimeout(300).exec()
                 super.stop()
             }
 
@@ -74,21 +75,6 @@ class ContractTestsUsingTestContainer {
                 return
             }
 
-            private fun dumpReports() {
-                println("Dumping kafka mock reports..")
-                val response: ResponseEntity<String> =
-                    restTemplate.exchange(
-                        URI("http://localhost:$KAFKA_MOCK_API_SERVER_PORT/stop"),
-                        HttpMethod.POST,
-                        HttpEntity(""),
-                        String::class.java,
-                    )
-                if (response.statusCode == HttpStatusCode.valueOf(200)) {
-                    println("Reports dumped successfully!")
-                } else {
-                    println("Error occurred while dumping the reports")
-                }
-            }
         }
 
         @Container
