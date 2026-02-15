@@ -30,8 +30,8 @@ dependencies {
     testImplementation("io.specmatic.enterprise:executable:$specmaticEnterpriseVersion")
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation('org.assertj:assertj-core:3.27.7', 'org.junit.jupiter:junit-jupiter-api:5.14.2')
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.14.2'
+    testImplementation('org.assertj:assertj-core:3.27.7', 'org.junit.jupiter:junit-jupiter-api:5.14.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.14.3'
     testImplementation "org.testcontainers:junit-jupiter:1.21.4"
 }
 
