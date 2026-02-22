@@ -127,7 +127,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ github.repository }}
+          images: specmaticdemo/${{ github.event.repository.name }}
 
       - name: Assemble project for Docker image
         run: ./gradlew assemble
@@ -139,5 +139,5 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ github.repository }}:latest
+            specmaticdemo/${{ github.event.repository.name }}:latest
           labels: ${{ steps.meta.outputs.labels }}
