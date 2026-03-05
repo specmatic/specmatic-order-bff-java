@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '2.3.10'
-    id 'org.springframework.boot' version '3.5.10'
+    id 'org.springframework.boot' version '3.5.11'
     id 'org.jetbrains.kotlin.plugin.spring' version '2.3.10'
     id 'jacoco'
 }
@@ -18,7 +18,7 @@ jacocoTestReport {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.10')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.11')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
