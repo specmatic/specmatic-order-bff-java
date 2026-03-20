@@ -1,4 +1,29 @@
 {
+  "before": [
+    {
+      "type": "http",
+      "http-request": {
+        "baseUrl": "http://localhost:9999",
+        "path": "/_specmatic/expectations",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "expectations": [
+            {
+              "topic": "product-queries",
+              "count": 1
+            }
+          ]
+        }
+      },
+      "http-response": {
+        "status": 200
+      },
+      "timeout": "PT5S"
+    }
+  ],
   "http-request": {
     "path": "/findAvailableProducts?type=book",
     "method": "GET",
@@ -16,5 +41,23 @@
     "headers": {
       "Content-Type": "application/json"
     }
-  }
+  },
+  "after": [
+    {
+      "type": "http",
+      "wait": "PT2S",
+      "http-request": {
+        "baseUrl": "http://localhost:9999",
+        "path": "/_specmatic/expectations/product-queries/verification_status",
+        "method": "GET"
+      },
+      "http-response": {
+        "status": 200,
+        "body": {
+          "success": "$match(exact: true)"
+        }
+      },
+      "timeout": "PT5S"
+    }
+  ]
 }
