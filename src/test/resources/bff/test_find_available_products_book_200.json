@@ -4,19 +4,8 @@
       "type": "http",
       "http-request": {
         "baseUrl": "http://localhost:9999",
-        "path": "/_specmatic/expectations",
-        "method": "POST",
-        "headers": {
-          "Content-Type": "application/json"
-        },
-        "body": {
-          "expectations": [
-            {
-              "topic": "product-queries",
-              "count": 1
-            }
-          ]
-        }
+        "path": "/_specmatic/snapshot",
+        "method": "POST"
       },
       "http-response": {
         "status": 200
@@ -48,13 +37,13 @@
       "wait": "PT2S",
       "http-request": {
         "baseUrl": "http://localhost:9999",
-        "path": "/_specmatic/expectations/product-queries/verification_status",
+        "path": "/_specmatic/verify?channels=product-queries",
         "method": "GET"
       },
       "http-response": {
         "status": 200,
         "body": {
-          "success": "$match(exact: true)"
+          "product-queries": "$match(exact: 1)"
         }
       },
       "timeout": "PT5S"
