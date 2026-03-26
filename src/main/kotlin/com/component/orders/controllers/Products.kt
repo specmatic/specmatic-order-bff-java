@@ -24,10 +24,11 @@ class Products(@Autowired val orderBFFService: OrderBFFService) {
     fun findAvailableProducts(
         @Valid @RequestParam(name = "type", required = false, defaultValue = "gadget") type: ProductType = ProductType.gadget,
         @Valid @Positive @RequestHeader(name = "pageSize", required = true) pageSize: Int,
+        @RequestHeader(name = "correlationId", required = true) correlationId: String,
         @RequestParam(name = "from-date", required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) fromDate: LocalDate,
         @RequestParam(name = "to-date", required = true) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) toDate: LocalDate,
     ): ResponseEntity<*> {
-        return when (val productsResponse = orderBFFService.findProducts(type, pageSize, fromDate, toDate)) {
+        return when (val productsResponse = orderBFFService.findProducts(type, pageSize, correlationId, fromDate, toDate)) {
             is AvailableProductsResponse.FetchedProducts -> ResponseEntity(productsResponse.products, HttpStatus.OK)
             is AvailableProductsResponse.RequestTimedOut -> {
                 val headers = HttpHeaders().apply {

@@ -1,23 +1,10 @@
 {
-  "before": [
-    {
-      "type": "http",
-      "http-request": {
-        "baseUrl": "http://localhost:9999",
-        "path": "/_specmatic/snapshot",
-        "method": "POST"
-      },
-      "http-response": {
-        "status": 200
-      },
-      "timeout": "PT5S"
-    }
-  ],
   "http-request": {
     "path": "/findAvailableProducts?type=book",
     "method": "GET",
     "headers": {
-      "pageSize": "10"
+      "pageSize": "10",
+      "correlationId": "corr-123"
     },
     "query": {
       "from-date": "2025-10-01",
@@ -34,16 +21,18 @@
   "after": [
     {
       "type": "http",
-      "wait": "PT2S",
       "http-request": {
         "baseUrl": "http://localhost:9999",
-        "path": "/_specmatic/verify?channels=product-queries",
+        "path": "/_specmatic/message-count?channels=product-queries&header.correlationId=corr-123",
         "method": "GET"
       },
       "http-response": {
         "status": 200,
         "body": {
-          "product-queries": "$match(exact: 1)"
+          "product-queries": {
+              "validMessageCount": "$match(exact: 1)",
+              "invalidMessageCount": "$match(exact: 0)"
+            }
         }
       },
       "timeout": "PT5S"

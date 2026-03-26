@@ -4,6 +4,8 @@ import com.component.orders.models.*
 import com.component.orders.models.messages.ProductMessage
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.header.internals.RecordHeader
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.*
@@ -12,6 +14,7 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -62,7 +65,7 @@ class OrderService(
         return response
     }
 
-    fun findProducts(type: ProductType, pageSize: Int, fromDate: LocalDate?, toDate: LocalDate?): List<Product> {
+    fun findProducts(type: ProductType, pageSize: Int, correlationId: String, fromDate: LocalDate?, toDate: LocalDate?): List<Product> {
         val effectiveToDate = toDate ?: LocalDate.now().plusWeeks(1)
         val effectiveFromDate = fromDate ?: effectiveToDate.minusWeeks(1)
 
@@ -70,7 +73,12 @@ class OrderService(
 
         products.take(1).forEach {
             val productMessage = ProductMessage(it.id, it.name, it.inventory)
-            kafkaTemplate.send(productQueriesTopic, jacksonObjectMapper.writeValueAsString(productMessage))
+            val producerRecord = ProducerRecord<String, String>(
+                productQueriesTopic,
+                jacksonObjectMapper.writeValueAsString(productMessage)
+            )
+            producerRecord.headers().add(RecordHeader("correlationId", correlationId.toByteArray(StandardCharsets.UTF_8)))
+            kafkaTemplate.send(producerRecord)
         }
         return products
     }

@@ -42,6 +42,7 @@ components:
     specmaticOrderContracts:
       git:
         url: https://github.com/specmatic/specmatic-order-contracts.git
+        branch: implicit_snapshot
   services:
     productSearchBffService:
       description: Product Search BFF Service
@@ -50,7 +51,7 @@ components:
             source:
               $ref: "#/components/sources/specmaticOrderContracts"
             specs:
-              - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
+              - ./io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
     orderApiService:
       description: Order API Service
       definitions:
@@ -58,7 +59,7 @@ components:
             source:
               $ref: "#/components/sources/specmaticOrderContracts"
             specs:
-              - io/specmatic/examples/store/openapi/api_order_v5.yaml
+              - ./io/specmatic/examples/store/openapi/api_order_v5.yaml
     kafkaService:
       description: Kafka AsyncAPI Service
       definitions:
@@ -66,7 +67,7 @@ components:
             source:
               $ref: "#/components/sources/specmaticOrderContracts"
             specs:
-              - io/specmatic/examples/store/asyncapi/kafka.yaml
+              - ./io/specmatic/examples/store/asyncapi/kafka.yaml
   runOptions:
     productSearchBffServiceTest:
       openapi:
