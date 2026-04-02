@@ -26,7 +26,7 @@ dependencies {
     implementation ('org.springframework.kafka:spring-kafka:3.3.14'){
         exclude group: 'org.lz4', module: 'lz4-java'
     }
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.16'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
 
     testImplementation("io.specmatic.enterprise:executable:$specmaticEnterpriseVersion") {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-data-jpa'
