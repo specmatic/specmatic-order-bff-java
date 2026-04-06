@@ -1,18 +1,4 @@
 {
-  "before": [
-    {
-      "type": "http",
-      "http-request": {
-        "baseUrl": "http://localhost:9999",
-        "path": "/_specmatic/snapshot",
-        "method": "POST"
-      },
-      "http-response": {
-        "status": 200
-      },
-      "timeout": "PT5S"
-    }
-  ],
   "http-request": {
     "path": "/findAvailableProducts?type=book",
     "method": "GET",

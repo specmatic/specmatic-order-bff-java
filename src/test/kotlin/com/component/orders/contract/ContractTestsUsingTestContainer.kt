@@ -49,6 +49,7 @@ class ContractTestsUsingTestContainer {
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")
+                .withReuse(false)
                 .withCommand("test")
                 .withFileSystemBind("./src", "/usr/src/app/src", BindMode.READ_ONLY)
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)

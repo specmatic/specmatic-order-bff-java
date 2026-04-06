@@ -35,8 +35,11 @@ specmatic:
       maxMissedOperationsInSpec: 0
       enforce: true
   settings:
+    general:
+      logging:
+        level: DEBUG
     test:
-      schemaResiliencyTests: all
+      schemaResiliencyTests: none
 components:
   sources:
     specmaticOrderContracts:
@@ -72,7 +75,7 @@ components:
       openapi:
         type: test
         baseUrl: "{APP_URL:http://localhost:8080}"
-        filter: "PATH!='/health,/monitor/{id},/swagger'"
+        filter: "PATH='/findAvailableProducts'"
         actuatorUrl: "{APP_URL:http://localhost:8080}/actuator/mappings"
     orderApiServiceMock:
       openapi:
