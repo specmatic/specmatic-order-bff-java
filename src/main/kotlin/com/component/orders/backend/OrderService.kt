@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate
 import java.nio.charset.StandardCharsets
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.TimeUnit
 
 @Service
 class OrderService(
@@ -78,7 +79,7 @@ class OrderService(
                 jacksonObjectMapper.writeValueAsString(productMessage)
             )
             producerRecord.headers().add(RecordHeader("correlationId", correlationId.toByteArray(StandardCharsets.UTF_8)))
-            kafkaTemplate.send(producerRecord)
+            kafkaTemplate.send(producerRecord).get(5, TimeUnit.SECONDS)
         }
         return products
     }
