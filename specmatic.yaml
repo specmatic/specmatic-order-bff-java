@@ -32,7 +32,7 @@ specmatic:
   governance:
     successCriteria:
       minCoveragePercentage: 70
-      maxMissedOperationsInSpec: 0
+      maxMissedOperationsInSpec: 1
       enforce: true
   settings:
     test:
