@@ -2,7 +2,7 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ main,test-orchestrator-workflow-dispatch ]
+    branches: [ main  ]
   pull_request:
     branches: [ main ]
   repository_dispatch:
@@ -62,10 +62,14 @@ jobs:
           fi
 
       - name: Run BFF Contract Test
-        run: ./gradlew test \
-               --tests="com.component.orders.contract.${{ matrix.testName }}" \
-               ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} \
-               ${ENTERPRISE_VERSION:+-PenterpriseVersion=${ENTERPRISE_VERSION}}
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          ./gradlew test \
+            --tests="com.component.orders.contract.${{ matrix.testName }}" \
+            ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} \
+            ${ENTERPRISE_VERSION:+-PenterpriseVersion=${ENTERPRISE_VERSION}}
 
 
       - name: Upload CTRF Report
