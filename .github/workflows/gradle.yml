@@ -64,6 +64,27 @@ jobs:
           mkdir -p ~/.specmatic
           echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
+      - name: Prepare Specmatic Enterprise artifact
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.specmatic
+          curl -L --fail --retry 3 --retry-delay 2 \
+            "${ENTERPRISE_ARTIFACT_URL}" \
+            -o ~/.specmatic/specmatic-enterprise.jar
+          
+          mvn install:install-file \
+            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
+            -DgroupId=io.specmatic.enterprise \
+            -DartifactId=executable \
+            -Dversion="${ENTERPRISE_VERSION}" \
+            -Dpackaging=jar \
+            -DgeneratePom=true
+          
+          echo "Installed Enterprise artifact into local Maven as io.specmatic.enterprise:executable:${ENTERPRISE_VERSION}"
+
       - name: Download Specmatic Enterprise Jar
         if: ${{ matrix.needsCliInstall }}
         run: |
