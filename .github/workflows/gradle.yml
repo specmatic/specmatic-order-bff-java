@@ -123,7 +123,7 @@ jobs:
           echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
 
       - name: Publish Build Reports to Specmatic Insights
-        if: github.ref == 'refs/heads/main'
+        if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_number == '' }}
         run: |
           docker run \
             -v ${{ github.workspace }}:/workspace \
@@ -145,7 +145,7 @@ jobs:
           path: build/reports/specmatic/html
 
   docker:
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_number == '' }}
     needs: buildAndTest
     runs-on: ubuntu-latest
     permissions:
