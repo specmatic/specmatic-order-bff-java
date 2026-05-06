@@ -7,6 +7,20 @@ on:
     branches: [ main ]
   repository_dispatch:
     types: contracts changed
+  workflow_dispatch:
+    inputs:
+      enterprise_version:
+        description: Specmatic Enterprise version under test
+        required: false
+        type: string
+      enterprise_artifact_url:
+        description: Specmatic Enterprise jar/artifact URL under test
+        required: false
+        type: string
+      orchestrator_run_number:
+        description: Test orchestrator run number
+        required: false
+        type: string
 
 jobs:
   buildAndTest:
@@ -26,9 +40,17 @@ jobs:
             needsCliInstall: false
     env:
       CTRF_REPORT_PATH: './build/reports/specmatic/test/ctrf/*.json'
+      ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
+      ENTERPRISE_ARTIFACT_URL: ${{ inputs.enterprise_artifact_url }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
+
+      - name: Add orchestrator context to summary
+        if: ${{ inputs.orchestrator_run_number != '' }}
+        run: |
+          echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: ${{ inputs.orchestrator_run_number }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -44,10 +66,31 @@ jobs:
 
       - name: Download Specmatic Enterprise Jar
         if: ${{ matrix.needsCliInstall }}
-        run: curl https://docs.specmatic.io/install-specmatic-enterprise.sh | bash
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.specmatic
+
+          if [ -n "${ENTERPRISE_ARTIFACT_URL}" ]; then
+            curl -L --fail --retry 3 --retry-delay 2 "${ENTERPRISE_ARTIFACT_URL}" -o ~/.specmatic/specmatic-enterprise.jar
+            echo "Using Enterprise jar from workflow_dispatch enterprise_artifact_url"
+          elif [ -n "${ENTERPRISE_VERSION}" ]; then
+            curl -fsSL https://docs.specmatic.io/install-specmatic-enterprise.sh | bash -s -- --version "${ENTERPRISE_VERSION}"
+            echo "Installed Enterprise jar for version ${ENTERPRISE_VERSION}"
+          else
+            curl -fsSL https://docs.specmatic.io/install-specmatic-enterprise.sh | bash
+            echo "Installed default Enterprise jar"
+          fi
 
       - name: Run BFF Contract Test
-        run: ./gradlew test --tests="com.component.orders.contract.${{ matrix.testName }}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          ./gradlew test \
+            --tests="com.component.orders.contract.${{ matrix.testName }}" \
+            ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} \
+            ${ENTERPRISE_VERSION:+-PenterpriseVersion=${ENTERPRISE_VERSION}}
+
 
       - name: Upload CTRF Report
         uses: actions/upload-artifact@v6
@@ -56,7 +99,7 @@ jobs:
           name: ctrf-report-${{ matrix.name }}
           path: ${{ env.CTRF_REPORT_PATH }}
           retention-days: 5
-    
+
       # Display CTRF test results
       - name: Publish Test Results
         uses: ctrf-io/github-test-reporter@v1
