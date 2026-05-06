@@ -1,5 +1,4 @@
 name: Java CI with Gradle
-run-name: Java CI with Gradle ${{ inputs.orchestrator_run_number && format(' - Orch {0}', inputs.orchestrator_run_number) || '' }}
 
 on:
   push:
@@ -46,6 +45,12 @@ jobs:
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
+
+      - name: Add orchestrator context to summary
+        if: ${{ inputs.orchestrator_run_number != '' }}
+        run: |
+          echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: ${{ inputs.orchestrator_run_number }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
