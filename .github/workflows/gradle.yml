@@ -1,12 +1,27 @@
 name: Java CI with Gradle
+run-name: Java CI with Gradle ${{ inputs.orchestrator_run_number && format(' - Orch {0}', inputs.orchestrator_run_number) || '' }}
 
 on:
   push:
-    branches: [ main  ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
   repository_dispatch:
     types: contracts changed
+  workflow_dispatch:
+    inputs:
+      enterprise_version:
+        description: Specmatic Enterprise version under test
+        required: false
+        type: string
+      enterprise_artifact_url:
+        description: Specmatic Enterprise jar/artifact URL under test
+        required: false
+        type: string
+      orchestrator_run_number:
+        description: Test orchestrator run number
+        required: false
+        type: string
 
 jobs:
   buildAndTest:
@@ -79,7 +94,7 @@ jobs:
           name: ctrf-report-${{ matrix.name }}
           path: ${{ env.CTRF_REPORT_PATH }}
           retention-days: 5
-    
+
       # Display CTRF test results
       - name: Publish Test Results
         uses: ctrf-io/github-test-reporter@v1
