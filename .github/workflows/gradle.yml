@@ -91,9 +91,8 @@ jobs:
           set -euo pipefail
           mkdir -p ~/.specmatic
 
-          if [ -n "${ENTERPRISE_ARTIFACT_URL}" ]; then
-            curl -L --fail --retry 3 --retry-delay 2 "${ENTERPRISE_ARTIFACT_URL}" -o ~/.specmatic/specmatic-enterprise.jar
-            echo "Using Enterprise jar from workflow_dispatch enterprise_artifact_url"
+          if [ -f "$HOME/.specmatic/specmatic-enterprise.jar" ]; then
+            echo "Using already prepared Enterprise jar"
           elif [ -n "${ENTERPRISE_VERSION}" ]; then
             curl -fsSL https://docs.specmatic.io/install-specmatic-enterprise.sh | bash -s -- --version "${ENTERPRISE_VERSION}"
             echo "Installed Enterprise jar for version ${ENTERPRISE_VERSION}"
