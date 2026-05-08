@@ -1,5 +1,6 @@
 name: Java CI with Gradle
 
+run-name: ${{ inputs.orchestrator_run_suffix && format('Java CI with Gradle - {0}', inputs.orchestrator_run_suffix) || github.workflow }}
 on:
   push:
     branches: [ main ]
@@ -17,8 +18,8 @@ on:
         description: Specmatic Enterprise jar/artifact URL under test
         required: false
         type: string
-      orchestrator_run_number:
-        description: Test orchestrator run number
+      orchestrator_run_suffix:
+        description: Test orchestrator run suffix
         required: false
         type: string
 
@@ -47,10 +48,10 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Add orchestrator context to summary
-        if: ${{ inputs.orchestrator_run_number != '' }}
+        if: ${{ inputs.orchestrator_run_suffix != '' }}
         run: |
           echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
-          echo "Run: ${{ inputs.orchestrator_run_number }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: ${{ inputs.orchestrator_run_suffix }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -143,7 +144,7 @@ jobs:
           echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
 
       - name: Publish Build Reports to Specmatic Insights
-        if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_number == '' }}
+        if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_suffix == '' }}
         run: |
           docker run \
             -v ${{ github.workspace }}:/workspace \
@@ -165,7 +166,7 @@ jobs:
           path: build/reports/specmatic/html
 
   docker:
-    if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_number == '' }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_suffix == '' }}
     needs: buildAndTest
     runs-on: ubuntu-latest
     permissions:
