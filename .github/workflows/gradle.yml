@@ -163,7 +163,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: html-report-${{ matrix.name }}
-          path: build/reports/specmatic/html
+          path: build/reports/specmatic/test/html
 
   docker:
     if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_suffix == '' }}
