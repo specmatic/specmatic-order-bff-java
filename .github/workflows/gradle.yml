@@ -77,7 +77,11 @@ jobs:
           echo "${ENTERPRISE_ARTIFACT_URL}"
           echo "Retry configuration: 3 retries with 15 second delay"
           
-          curl -L --fail --retry 5 --retry-delay 15 \
+          curl --http1.1 -L --fail \
+            --retry 5 \
+            --retry-delay 15 \
+            --retry-all-errors \
+            --continue-at - \
             "${ENTERPRISE_ARTIFACT_URL}" \
             -o ~/.specmatic/specmatic-enterprise.jar
           
