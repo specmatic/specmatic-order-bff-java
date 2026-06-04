@@ -165,9 +165,12 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_suffix == '' }}
         run: |
           docker run \
-            -v ${{ github.workspace }}:/workspace \
-            -v ${{ github.workspace }}/specmatic.yaml:/workspace/specmatic.yaml \
-            -v ~/.specmatic:/root/.specmatic \
+            --rm \
+            -e GIT_DISCOVERY_ACROSS_FILESYSTEM=1 \
+            -v "${{ github.workspace }}:/workspace" \
+            -v "${{ github.workspace }}/.git:/workspace/.git:ro" \
+            -v "${{ github.workspace }}/specmatic.yaml:/workspace/specmatic.yaml:ro" \
+            -v "${HOME}/.specmatic:/root/.specmatic:ro" \
             -w /workspace \
             specmatic/enterprise \
             send-report \
