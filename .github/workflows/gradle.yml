@@ -39,8 +39,8 @@ jobs:
           echo "${{ inputs.enterprise_artifact_url }}"
 
           curl -L --fail \
-            --retry 5 \
-            --retry-delay 15 \
+            --retry 10 \
+            --retry-delay 30 \
             --retry-all-errors \
             --continue-at - \
             "${{ inputs.enterprise_artifact_url }}" \
@@ -124,7 +124,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          
+
           ./gradlew test \
             --tests="com.component.orders.contract.${{ matrix.testName }}" \
             ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} \
