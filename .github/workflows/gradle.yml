@@ -34,17 +34,36 @@ jobs:
           set -euo pipefail
 
           mkdir -p "$HOME/.specmatic"
+          url="${{ inputs.enterprise_artifact_url }}"
+          output_path="$HOME/.specmatic/specmatic-enterprise.jar"
+          max_attempts=10
 
           echo "Downloading Enterprise artifact from:"
-          echo "${{ inputs.enterprise_artifact_url }}"
+          echo "$url"
 
-          curl -L --fail \
-            --retry 10 \
-            --retry-delay 30 \
-            --retry-all-errors \
-            --continue-at - \
-            "${{ inputs.enterprise_artifact_url }}" \
-            -o "$HOME/.specmatic/specmatic-enterprise.jar"
+          initial_sleep=$(( RANDOM % 181 ))
+          echo "Initial jitter: ${initial_sleep}s"
+          sleep "$initial_sleep"
+
+          for attempt in $(seq 1 "$max_attempts"); do
+            echo "Download attempt ${attempt}/${max_attempts}"
+
+            if curl --http1.1 -L --fail --continue-at - "$url" -o "$output_path"; then
+              echo "Enterprise artifact downloaded successfully"
+              exit 0
+            fi
+
+            if [ "$attempt" -eq "$max_attempts" ]; then
+              echo "Download failed after ${max_attempts} attempts"
+              exit 1
+            fi
+
+            backoff=$(( 30 * attempt ))
+            jitter=$(( RANDOM % 31 ))
+            sleep_for=$(( backoff + jitter ))
+            echo "Attempt ${attempt} failed. Sleeping ${sleep_for}s before retry"
+            sleep "$sleep_for"
+          done
 
       - name: Upload Specmatic Enterprise artifact
         uses: actions/upload-artifact@v6
