@@ -99,7 +99,7 @@ jobs:
           echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
       - name: Download Specmatic Enterprise Jar artifact
-        if: ${{ matrix.needsCliInstall && inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
         uses: actions/download-artifact@v5
         with:
           name: specmatic-enterprise-jar
@@ -120,6 +120,25 @@ jobs:
             curl -fsSL https://docs.specmatic.io/install-specmatic-enterprise.sh | bash
             echo "Installed default Enterprise jar"
           fi
+
+      - name: Install Specmatic Enterprise Jar into local Maven
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "$HOME/.specmatic/specmatic-enterprise.jar" ]; then
+            echo "Expected enterprise jar at $HOME/.specmatic/specmatic-enterprise.jar"
+            exit 1
+          fi
+
+          mvn install:install-file \
+            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
+            -DgroupId=io.specmatic.enterprise \
+            -DartifactId=executable \
+            -Dversion="${ENTERPRISE_VERSION}" \
+            -Dpackaging=jar \
+            -DgeneratePom=true
 
       - name: Run BFF Contract Test
         shell: bash
