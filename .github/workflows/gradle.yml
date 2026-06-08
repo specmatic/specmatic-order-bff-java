@@ -121,6 +121,10 @@ jobs:
             echo "Installed default Enterprise jar"
           fi
 
+      - name: Docker Login for snapshot image
+        if: ${{ matrix.name == 'docker' && inputs.enterprise_artifact_url != '' && github.ref == 'refs/heads/main' }}
+        run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
+
       - name: Install Specmatic Enterprise Jar into local Maven
         if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
         shell: bash
