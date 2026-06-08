@@ -24,7 +24,40 @@ on:
         type: string
 
 jobs:
+  prepare-enterprise-artifact:
+    if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare Specmatic Enterprise artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$HOME/.specmatic"
+          url="${{ inputs.enterprise_artifact_url }}"
+          output_path="$HOME/.specmatic/specmatic-enterprise.jar"
+          echo "Downloading Enterprise artifact from:"
+          echo "$url"
+
+          initial_sleep=$(( RANDOM % 31 ))
+          echo "Initial jitter: ${initial_sleep}s"
+          sleep "$initial_sleep"
+
+          echo "Download attempt 1/1"
+          curl --http1.1 -L --fail --continue-at - "$url" -o "$output_path"
+          echo "Enterprise artifact downloaded successfully"
+
+      - name: Upload Specmatic Enterprise artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: specmatic-enterprise-jar
+          path: ~/.specmatic/specmatic-enterprise.jar
+          if-no-files-found: error
+          retention-days: 1
+
   buildAndTest:
+    needs: [prepare-enterprise-artifact]
+    if: ${{ always() && (needs.prepare-enterprise-artifact.result == 'success' || needs.prepare-enterprise-artifact.result == 'skipped') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -65,35 +98,12 @@ jobs:
           mkdir -p ~/.specmatic
           echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
-      - name: Prepare Specmatic Enterprise artifact
+      - name: Download Specmatic Enterprise Jar artifact
         if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p ~/.specmatic
-          
-          echo "Downloading Enterprise artifact from:"
-          echo "${ENTERPRISE_ARTIFACT_URL}"
-          echo "Retry configuration: 3 retries with 15 second delay"
-          
-          curl --http1.1 -L --fail \
-            --retry 5 \
-            --retry-delay 15 \
-            --retry-all-errors \
-            --continue-at - \
-            "${ENTERPRISE_ARTIFACT_URL}" \
-            -o ~/.specmatic/specmatic-enterprise.jar
-          
-          mvn install:install-file \
-            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
-            -DgroupId=io.specmatic.enterprise \
-            -DartifactId=executable \
-            -Dversion="${ENTERPRISE_VERSION}" \
-            -Dpackaging=jar \
-            -DgeneratePom=true
-          
-          echo "Installed Enterprise artifact into local Maven as io.specmatic.enterprise:executable:${ENTERPRISE_VERSION}"
+        uses: actions/download-artifact@v5
+        with:
+          name: specmatic-enterprise-jar
+          path: ~/.specmatic
 
       - name: Download Specmatic Enterprise Jar
         if: ${{ matrix.needsCliInstall }}
@@ -101,8 +111,8 @@ jobs:
           set -euo pipefail
           mkdir -p ~/.specmatic
 
-          if [ -f "$HOME/.specmatic/specmatic-enterprise.jar" ]; then
-            echo "Using already prepared Enterprise jar"
+          if [ -n "${ENTERPRISE_ARTIFACT_URL}" ] && [ -f ~/.specmatic/specmatic-enterprise.jar ]; then
+            echo "Using Enterprise jar from workflow_dispatch enterprise_artifact_url"
           elif [ -n "${ENTERPRISE_VERSION}" ]; then
             curl -fsSL https://docs.specmatic.io/install-specmatic-enterprise.sh | bash -s -- --version "${ENTERPRISE_VERSION}"
             echo "Installed Enterprise jar for version ${ENTERPRISE_VERSION}"
@@ -115,11 +125,30 @@ jobs:
         if: ${{ matrix.name == 'docker' && inputs.enterprise_artifact_url != '' && github.ref == 'refs/heads/main' }}
         run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
 
+      - name: Install Specmatic Enterprise Jar into local Maven
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ ! -f "$HOME/.specmatic/specmatic-enterprise.jar" ]; then
+            echo "Expected enterprise jar at $HOME/.specmatic/specmatic-enterprise.jar"
+            exit 1
+          fi
+
+          mvn install:install-file \
+            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
+            -DgroupId=io.specmatic.enterprise \
+            -DartifactId=executable \
+            -Dversion="${ENTERPRISE_VERSION}" \
+            -Dpackaging=jar \
+            -DgeneratePom=true
+
       - name: Run BFF Contract Test
         shell: bash
         run: |
           set -euo pipefail
-          
+
           ./gradlew test \
             --tests="com.component.orders.contract.${{ matrix.testName }}" \
             ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} \
@@ -160,10 +189,14 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_suffix == '' }}
         run: |
           docker run \
-            -v ${{ github.workspace }}:/workspace \
-            -v ${{ github.workspace }}/specmatic.yaml:/workspace/specmatic.yaml \
-            -v ~/.specmatic:/root/.specmatic \
-            -w /workspace \
+            --rm \
+            -e GIT_DISCOVERY_ACROSS_FILESYSTEM=1 \
+            -e GIT_CONFIG_COUNT=1 \
+            -e GIT_CONFIG_KEY_0=safe.directory \
+            -e GIT_CONFIG_VALUE_0=/usr/src/app \
+            -v "${{ github.workspace }}:/usr/src/app" \
+            -v "${HOME}/.specmatic:/root/.specmatic:ro" \
+            -w /usr/src/app \
             specmatic/enterprise \
             send-report \
             --metadata build_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} \
