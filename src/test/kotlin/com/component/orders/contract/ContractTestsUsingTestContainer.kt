@@ -21,10 +21,9 @@ class ContractTestsUsingTestContainer {
             System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
         private fun enterpriseImage(): String =
-            if(!System.getenv("ENTERPRISE_ARTIFACT_URL").isNullOrEmpty())
-                "specmatic/enterprise-snapshot"
-            else
-                "specmatic/enterprise"
+            System.getenv("ENTERPRISE_DOCKER_IMAGE")
+                ?.takeIf { it.isNotBlank() }
+                ?: "specmatic/enterprise"
 
         private fun mockContainerWithSetExpectations(): GenericContainer<*> = object : GenericContainer<Nothing>(
                 enterpriseImage()
