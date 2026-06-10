@@ -114,8 +114,6 @@ jobs:
             needsCliInstall: false
     env:
       CTRF_REPORT_PATH: './build/reports/specmatic/test/ctrf/*.json'
-      ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
-      ENTERPRISE_ARTIFACT_URL: ${{ inputs.enterprise_artifact_url }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
@@ -151,6 +149,8 @@ jobs:
       - name: Install prepared Specmatic Enterprise jar into local Maven
         if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
         shell: bash
+        env:
+          ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
         run: |
           set -euo pipefail
 
@@ -164,6 +164,9 @@ jobs:
 
       - name: Download Specmatic Enterprise Jar
         if: ${{ matrix.needsCliInstall }}
+        env:
+          ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
+          ENTERPRISE_ARTIFACT_URL: ${{ inputs.enterprise_artifact_url }}
         run: |
           set -euo pipefail
           mkdir -p ~/.specmatic
@@ -195,6 +198,8 @@ jobs:
 
       - name: Run BFF Contract Test
         shell: bash
+        env:
+          ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
         run: |
           set -euo pipefail
 
