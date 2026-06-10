@@ -122,11 +122,11 @@ jobs:
           fi
 
       - name: Docker Login for orchestrator snapshot run
-        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' && github.ref == 'refs/heads/main' }}
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
         run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
 
       - name: Pull and retag snapshot image for orchestrator run
-        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' && github.ref == 'refs/heads/main' }}
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
         shell: bash
         run: |
           set -euo pipefail
