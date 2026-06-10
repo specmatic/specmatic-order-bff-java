@@ -24,18 +24,33 @@ on:
         type: string
 
 jobs:
-  prepare-enterprise-artifact:
-    if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+  # Internal-only prep for Specmatic orchestrator runs.
+  prepare_specmatic_internal_assets:
+    if: ${{ inputs.orchestrator_run_suffix != '' || (inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Prepare Specmatic Enterprise artifact
+      - name: Add orchestrator context to summary
+        if: ${{ inputs.orchestrator_run_suffix != '' }}
+        run: |
+          echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: ${{ inputs.orchestrator_run_suffix }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up JDK 17
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Prepare Specmatic Enterprise jar
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
         shell: bash
         run: |
           set -euo pipefail
 
           mkdir -p "$HOME/.specmatic"
           url="${{ inputs.enterprise_artifact_url }}"
-          output_path="$HOME/.specmatic/specmatic-enterprise.jar"
+          output_path="$RUNNER_TEMP/specmatic-enterprise.jar"
           echo "Downloading Enterprise artifact from:"
           echo "$url"
 
@@ -47,17 +62,42 @@ jobs:
           curl --http1.1 -L --fail --continue-at - "$url" -o "$output_path"
           echo "Enterprise artifact downloaded successfully"
 
-      - name: Upload Specmatic Enterprise artifact
+      - name: Upload Specmatic Enterprise jar
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
         uses: actions/upload-artifact@v6
         with:
           name: specmatic-enterprise-jar
-          path: ~/.specmatic/specmatic-enterprise.jar
+          path: ${{ runner.temp }}/specmatic-enterprise.jar
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Docker Login for orchestrator snapshot image
+        if: ${{ inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
+        run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: Prepare snapshot image tarball for orchestrator run
+        if: ${{ inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          image_archive="$RUNNER_TEMP/specmatic-enterprise-image.tar"
+          docker pull specmatic/enterprise-snapshot
+          docker tag specmatic/enterprise-snapshot specmatic/enterprise:latest
+          docker image save specmatic/enterprise-snapshot specmatic/enterprise:latest -o "$image_archive"
+
+      - name: Upload snapshot image tarball
+        if: ${{ inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: specmatic-enterprise-image
+          path: ${{ runner.temp }}/specmatic-enterprise-image.tar
           if-no-files-found: error
           retention-days: 1
 
   buildAndTest:
-    needs: [prepare-enterprise-artifact]
-    if: ${{ always() && (needs.prepare-enterprise-artifact.result == 'success' || needs.prepare-enterprise-artifact.result == 'skipped') }}
+    needs: [prepare_specmatic_internal_assets]
+    if: ${{ always() && (needs.prepare_specmatic_internal_assets.result == 'success' || needs.prepare_specmatic_internal_assets.result == 'skipped') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -80,12 +120,6 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v6
 
-      - name: Add orchestrator context to summary
-        if: ${{ inputs.orchestrator_run_suffix != '' }}
-        run: |
-          echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
-          echo "Run: ${{ inputs.orchestrator_run_suffix }}" >> "$GITHUB_STEP_SUMMARY"
-
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -98,12 +132,35 @@ jobs:
           mkdir -p ~/.specmatic
           echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
-      - name: Download Specmatic Enterprise Jar artifact
+      - name: Download prepared Specmatic Enterprise jar
         if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
         uses: actions/download-artifact@v5
         with:
           name: specmatic-enterprise-jar
-          path: ~/.specmatic
+          path: ${{ runner.temp }}/specmatic-jar
+
+      - name: Place prepared Specmatic Enterprise jar
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$HOME/.specmatic"
+          cp "$RUNNER_TEMP/specmatic-jar/specmatic-enterprise.jar" "$HOME/.specmatic/specmatic-enterprise.jar"
+
+      - name: Install prepared Specmatic Enterprise jar into local Maven
+        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mvn install:install-file \
+            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
+            -DgroupId=io.specmatic.enterprise \
+            -DartifactId=executable \
+            -Dversion="${ENTERPRISE_VERSION}" \
+            -Dpackaging=jar \
+            -DgeneratePom=true
 
       - name: Download Specmatic Enterprise Jar
         if: ${{ matrix.needsCliInstall }}
@@ -121,37 +178,20 @@ jobs:
             echo "Installed default Enterprise jar"
           fi
 
-      - name: Docker Login for orchestrator snapshot run
+      - name: Download prepared snapshot image
         if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
-        run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
+        uses: actions/download-artifact@v5
+        with:
+          name: specmatic-enterprise-image
+          path: ${{ runner.temp }}
 
-      - name: Pull and retag snapshot image for orchestrator run
+      - name: Load prepared snapshot image
         if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
         shell: bash
         run: |
           set -euo pipefail
 
-          docker pull specmatic/enterprise-snapshot
-          docker tag specmatic/enterprise-snapshot specmatic/enterprise:latest
-
-      - name: Install Specmatic Enterprise Jar into local Maven
-        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ ! -f "$HOME/.specmatic/specmatic-enterprise.jar" ]; then
-            echo "Expected enterprise jar at $HOME/.specmatic/specmatic-enterprise.jar"
-            exit 1
-          fi
-
-          mvn install:install-file \
-            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
-            -DgroupId=io.specmatic.enterprise \
-            -DartifactId=executable \
-            -Dversion="${ENTERPRISE_VERSION}" \
-            -Dpackaging=jar \
-            -DgeneratePom=true
+          docker load -i "$RUNNER_TEMP/specmatic-enterprise-image.tar"
 
       - name: Run BFF Contract Test
         shell: bash
@@ -219,6 +259,59 @@ jobs:
         with:
           name: html-report-${{ matrix.name }}
           path: build/reports/specmatic/test/html
+
+  cleanup_specmatic_internal_assets:
+    if: ${{ always() && (inputs.orchestrator_run_suffix != '' || (inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '')) }}
+    needs:
+      - prepare_specmatic_internal_assets
+      - buildAndTest
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete prepared enterprise jar artifact
+        if: ${{ needs.prepare_specmatic_internal_assets.result == 'success' && inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+            const target = artifacts.find((artifact) => artifact.name === 'specmatic-enterprise-jar');
+            if (target) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: target.id
+              });
+              core.info(`Deleted artifact ${target.name}`);
+            } else {
+              core.info('Artifact specmatic-enterprise-jar not found');
+            }
+
+      - name: Delete prepared enterprise image artifact
+        if: ${{ needs.prepare_specmatic_internal_assets.result == 'success' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+            const target = artifacts.find((artifact) => artifact.name === 'specmatic-enterprise-image');
+            if (target) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: target.id
+              });
+              core.info(`Deleted artifact ${target.name}`);
+            } else {
+              core.info('Artifact specmatic-enterprise-image not found');
+            }
 
   docker:
     if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_suffix == '' }}
