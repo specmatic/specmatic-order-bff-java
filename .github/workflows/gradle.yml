@@ -14,10 +14,6 @@ on:
         description: Specmatic Enterprise version under test
         required: false
         type: string
-      enterprise_docker_image:
-        description: Specmatic Enterprise docker image under test
-        required: false
-        type: string
       enterprise_artifact_url:
         description: Specmatic Enterprise jar/artifact URL under test
         required: false
@@ -79,7 +75,6 @@ jobs:
     env:
       CTRF_REPORT_PATH: './build/reports/specmatic/test/ctrf/*.json'
       ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
-      ENTERPRISE_DOCKER_IMAGE: ${{ inputs.enterprise_docker_image }}
       ENTERPRISE_ARTIFACT_URL: ${{ inputs.enterprise_artifact_url }}
     steps:
       - name: Checkout project
@@ -126,9 +121,18 @@ jobs:
             echo "Installed default Enterprise jar"
           fi
 
-      - name: Docker Login for orchestrated image
-        if: ${{ matrix.name == 'docker' && inputs.enterprise_docker_image != '' && github.ref == 'refs/heads/main' }}
+      - name: Docker Login for orchestrator snapshot run
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' && github.ref == 'refs/heads/main' }}
         run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: Pull and retag snapshot image for orchestrator run
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' && github.ref == 'refs/heads/main' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker pull specmatic/enterprise-snapshot
+          docker tag specmatic/enterprise-snapshot specmatic/enterprise:latest
 
       - name: Install Specmatic Enterprise Jar into local Maven
         if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}

@@ -20,13 +20,8 @@ class ContractTestsUsingTestContainer {
         fun isNonCIOrLinux(): Boolean =
             System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
-        private fun enterpriseImage(): String =
-            System.getenv("ENTERPRISE_DOCKER_IMAGE")
-                ?.takeIf { it.isNotBlank() }
-                ?: "specmatic/enterprise"
-
         private fun mockContainerWithSetExpectations(): GenericContainer<*> = object : GenericContainer<Nothing>(
-                enterpriseImage()
+                "specmatic/enterprise"
         ) {
             override fun start() {
                 super.start()
@@ -53,7 +48,7 @@ class ContractTestsUsingTestContainer {
                 .withLogConsumer { print(it.utf8String) }
 
         private val testContainer: GenericContainer<*> =
-            GenericContainer(enterpriseImage())
+            GenericContainer("specmatic/enterprise")
                 .withCommand("test")
                 .withFileSystemBind("./src", "/usr/src/app/src", BindMode.READ_ONLY)
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
