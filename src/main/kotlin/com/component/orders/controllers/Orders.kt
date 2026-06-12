@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @Validated
 class Orders(@Autowired val orderBFFService: OrderBFFService) {
-    @PostMapping("/orders", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping("/orders", produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun createOrder(@Valid @RequestBody orderRequest: OrderRequest): ResponseEntity<*> {
         return when (val orderResponse = orderBFFService.createOrder(orderRequest)) {
             is OrderResponse.OrderConfirmed -> ResponseEntity(orderResponse, HttpStatus.CREATED)
