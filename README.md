@@ -66,8 +66,6 @@ gradlew test --tests="com.component.orders.contract.ContractTestsUsingTestContai
 
 ### 3. Using CLI based test execution
 
-Note: Please make sure you download the Specmatic Enterprise jar from [Specmatic's download page](https://docs.specmatic.io/download#specmatic-enterprise).
-
 For **Unix based systems** and **Windows Powershell**:
 ```shell
 ./gradlew test --tests="com.component.orders.contract.ContractTestUsingCLITest"
@@ -76,6 +74,7 @@ For **Unix based systems** and **Windows Powershell**:
 For **Windows Command Prompt**:
 ```shell
 gradlew test --tests="com.component.orders.contract.ContractTestUsingCLITest"
+```
 
 ### 4. Using Docker
 
