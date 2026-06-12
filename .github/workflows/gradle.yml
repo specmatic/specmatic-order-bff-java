@@ -15,7 +15,7 @@ on:
         required: false
         type: string
       enterprise_artifact_url:
-        description: Specmatic Enterprise jar/artifact URL under test
+        description: Deprecated fat-jar artifact URL input; retained for workflow compatibility
         required: false
         type: string
       orchestrator_run_suffix:
@@ -64,48 +64,21 @@ jobs:
           echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
           echo "Run: ${{ inputs.orchestrator_run_suffix }}" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Prepare Specmatic Enterprise jar
-        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
+      - name: Install Gradle snapshot init script
+        if: ${{ inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
         shell: bash
         run: |
           set -euo pipefail
 
-          mkdir -p "$HOME/.specmatic"
-          url="${{ inputs.enterprise_artifact_url }}"
-          output_path="$HOME/.specmatic/specmatic-enterprise.jar"
-          echo "Downloading Enterprise artifact from:"
-          echo "$url"
-
-          initial_sleep=$(( RANDOM % 31 ))
-          echo "Initial jitter: ${initial_sleep}s"
-          sleep "$initial_sleep"
-
-          echo "Download attempt 1/1"
-          curl --http1.1 -L --fail --continue-at - "$url" -o "$output_path"
-          echo "Enterprise artifact downloaded successfully"
-
-      - name: Install prepared Specmatic Enterprise jar into local Maven
-        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
-        shell: bash
-        env:
-          ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
-        run: |
-          set -euo pipefail
-
-          mvn install:install-file \
-            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
-            -DgroupId=io.specmatic.enterprise \
-            -DartifactId=executable \
-            -Dversion="${ENTERPRISE_VERSION}" \
-            -Dpackaging=jar \
-            -DgeneratePom=true
+          mkdir -p "$HOME/.gradle/init.d"
+          cp ./gradle/specmatic-snapshots.init.gradle "$HOME/.gradle/init.d/specmatic-snapshots.init.gradle"
 
       - name: Docker Login for orchestrator snapshot image
-        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
         run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
 
       - name: Prepare snapshot image for orchestrator run
-        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && inputs.enterprise_artifact_url != '' }}
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
         shell: bash
         run: |
           set -euo pipefail
@@ -142,9 +115,7 @@ jobs:
 
           ./gradlew test \
             --tests="com.component.orders.contract.${{ matrix.testName }}" \
-            ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} \
-            ${ENTERPRISE_VERSION:+-PenterpriseVersion=${ENTERPRISE_VERSION}}
-
+            ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} 
 
       - name: Upload CTRF Report
         uses: actions/upload-artifact@v6
