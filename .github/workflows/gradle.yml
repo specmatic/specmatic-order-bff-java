@@ -15,7 +15,7 @@ on:
         required: false
         type: string
       enterprise_artifact_url:
-        description: Deprecated fat-jar artifact URL input; retained for workflow compatibility
+        description: Specmatic Enterprise jar/artifact URL under test
         required: false
         type: string
       orchestrator_run_suffix:
@@ -96,8 +96,9 @@ jobs:
           set -euo pipefail
           mkdir -p ~/.specmatic
 
-          if [ -n "${ENTERPRISE_ARTIFACT_URL}" ] && [ -f ~/.specmatic/specmatic-enterprise.jar ]; then
-            echo "Using Enterprise jar from workflow_dispatch enterprise_artifact_url"
+          if [ -n "${ENTERPRISE_ARTIFACT_URL}" ]; then
+            curl -fsSL "${ENTERPRISE_ARTIFACT_URL}" -o ~/.specmatic/specmatic-enterprise.jar
+            echo "Downloaded Enterprise jar from workflow_dispatch enterprise_artifact_url"
           elif [ -n "${ENTERPRISE_VERSION}" ]; then
             curl -fsSL https://docs.specmatic.io/install-specmatic-enterprise.sh | bash -s -- --version "${ENTERPRISE_VERSION}"
             echo "Installed Enterprise jar for version ${ENTERPRISE_VERSION}"
