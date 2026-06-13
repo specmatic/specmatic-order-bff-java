@@ -24,40 +24,7 @@ on:
         type: string
 
 jobs:
-  prepare-enterprise-artifact:
-    if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Prepare Specmatic Enterprise artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p "$HOME/.specmatic"
-          url="${{ inputs.enterprise_artifact_url }}"
-          output_path="$HOME/.specmatic/specmatic-enterprise.jar"
-          echo "Downloading Enterprise artifact from:"
-          echo "$url"
-
-          initial_sleep=$(( RANDOM % 31 ))
-          echo "Initial jitter: ${initial_sleep}s"
-          sleep "$initial_sleep"
-
-          echo "Download attempt 1/1"
-          curl --http1.1 -L --fail --continue-at - "$url" -o "$output_path"
-          echo "Enterprise artifact downloaded successfully"
-
-      - name: Upload Specmatic Enterprise artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: specmatic-enterprise-jar
-          path: ~/.specmatic/specmatic-enterprise.jar
-          if-no-files-found: error
-          retention-days: 1
-
   buildAndTest:
-    needs: [prepare-enterprise-artifact]
-    if: ${{ always() && (needs.prepare-enterprise-artifact.result == 'success' || needs.prepare-enterprise-artifact.result == 'skipped') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -74,17 +41,9 @@ jobs:
             needsCliInstall: false
     env:
       CTRF_REPORT_PATH: './build/reports/specmatic/test/ctrf/*.json'
-      ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
-      ENTERPRISE_ARTIFACT_URL: ${{ inputs.enterprise_artifact_url }}
     steps:
       - name: Checkout project
         uses: actions/checkout@v6
-
-      - name: Add orchestrator context to summary
-        if: ${{ inputs.orchestrator_run_suffix != '' }}
-        run: |
-          echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
-          echo "Run: ${{ inputs.orchestrator_run_suffix }}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -98,21 +57,48 @@ jobs:
           mkdir -p ~/.specmatic
           echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
-      - name: Download Specmatic Enterprise Jar artifact
-        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
-        uses: actions/download-artifact@v5
-        with:
-          name: specmatic-enterprise-jar
-          path: ~/.specmatic
+      # Start: internal setup required by Specmatic. Sample project users can ignore this block.
+      - name: Add orchestrator context to summary
+        if: ${{ inputs.orchestrator_run_suffix != '' }}
+        run: |
+          echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: ${{ inputs.orchestrator_run_suffix }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install Gradle snapshot init script
+        if: ${{ inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p "$HOME/.gradle/init.d"
+          cp ./gradle/specmatic-snapshots.init.gradle "$HOME/.gradle/init.d/specmatic-snapshots.init.gradle"
+
+      - name: Docker Login for orchestrator snapshot image
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
+        run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
+
+      - name: Prepare snapshot image for orchestrator run
+        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker pull specmatic/enterprise-snapshot
+          docker tag specmatic/enterprise-snapshot specmatic/enterprise:latest
+      # End: internal setup required by Specmatic.
 
       - name: Download Specmatic Enterprise Jar
         if: ${{ matrix.needsCliInstall }}
+        env:
+          ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
+          ENTERPRISE_ARTIFACT_URL: ${{ inputs.enterprise_artifact_url }}
         run: |
           set -euo pipefail
           mkdir -p ~/.specmatic
 
-          if [ -n "${ENTERPRISE_ARTIFACT_URL}" ] && [ -f ~/.specmatic/specmatic-enterprise.jar ]; then
-            echo "Using Enterprise jar from workflow_dispatch enterprise_artifact_url"
+          if [ -n "${ENTERPRISE_ARTIFACT_URL}" ]; then
+            curl -fsSL "${ENTERPRISE_ARTIFACT_URL}" -o ~/.specmatic/specmatic-enterprise.jar
+            echo "Downloaded Enterprise jar from workflow_dispatch enterprise_artifact_url"
           elif [ -n "${ENTERPRISE_VERSION}" ]; then
             curl -fsSL https://docs.specmatic.io/install-specmatic-enterprise.sh | bash -s -- --version "${ENTERPRISE_VERSION}"
             echo "Installed Enterprise jar for version ${ENTERPRISE_VERSION}"
@@ -121,39 +107,16 @@ jobs:
             echo "Installed default Enterprise jar"
           fi
 
-      - name: Docker Login for snapshot image
-        if: ${{ matrix.name == 'docker' && inputs.enterprise_artifact_url != '' && github.ref == 'refs/heads/main' }}
-        run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
-
-      - name: Install Specmatic Enterprise Jar into local Maven
-        if: ${{ inputs.enterprise_artifact_url != '' && inputs.enterprise_version != '' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ ! -f "$HOME/.specmatic/specmatic-enterprise.jar" ]; then
-            echo "Expected enterprise jar at $HOME/.specmatic/specmatic-enterprise.jar"
-            exit 1
-          fi
-
-          mvn install:install-file \
-            -Dfile="$HOME/.specmatic/specmatic-enterprise.jar" \
-            -DgroupId=io.specmatic.enterprise \
-            -DartifactId=executable \
-            -Dversion="${ENTERPRISE_VERSION}" \
-            -Dpackaging=jar \
-            -DgeneratePom=true
-
       - name: Run BFF Contract Test
         shell: bash
+        env:
+          ENTERPRISE_VERSION: ${{ inputs.enterprise_version }}
         run: |
           set -euo pipefail
 
           ./gradlew test \
             --tests="com.component.orders.contract.${{ matrix.testName }}" \
-            ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} \
-            ${ENTERPRISE_VERSION:+-PenterpriseVersion=${ENTERPRISE_VERSION}}
-
+            ${ENTERPRISE_VERSION:+-PspecmaticEnterpriseVersion=${ENTERPRISE_VERSION}} 
 
       - name: Upload CTRF Report
         uses: actions/upload-artifact@v6
