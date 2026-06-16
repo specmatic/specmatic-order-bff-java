@@ -9,6 +9,7 @@ on:
   repository_dispatch:
     types: contracts changed
   workflow_dispatch:
+    # Internal inputs used by Specmatic's test orchestrator. Sample project users can ignore these.
     inputs:
       enterprise_version:
         description: Specmatic Enterprise version under test
@@ -57,34 +58,15 @@ jobs:
           mkdir -p ~/.specmatic
           echo "${{ secrets.SPECMATIC_LICENSE_KEY }}" > ~/.specmatic/specmatic-license.txt
 
-      # Start: internal setup required by Specmatic. Sample project users can ignore this block.
-      - name: Add orchestrator context to summary
-        if: ${{ inputs.orchestrator_run_suffix != '' }}
-        run: |
-          echo "### Orchestrator" >> "$GITHUB_STEP_SUMMARY"
-          echo "Run: ${{ inputs.orchestrator_run_suffix }}" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Install Gradle snapshot init script
-        if: ${{ inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p "$HOME/.gradle/init.d"
-          cp ./gradle/specmatic-snapshots.init.gradle "$HOME/.gradle/init.d/specmatic-snapshots.init.gradle"
-
-      - name: Docker Login for orchestrator snapshot image
-        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
-        run: echo ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }} | docker login -u ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }} --password-stdin
-
-      - name: Prepare snapshot image for orchestrator run
-        if: ${{ matrix.name == 'docker' && inputs.orchestrator_run_suffix != '' && endsWith(inputs.enterprise_version, '-SNAPSHOT') }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          docker pull specmatic/enterprise-snapshot
-          docker tag specmatic/enterprise-snapshot specmatic/enterprise:latest
+      # Internal setup required by Specmatic. Sample project users can ignore this block.
+      - uses: specmatic/specmatic-github-workflows/action-orchestrator-setup@main
+        with:
+          orchestrator-run-suffix: ${{ inputs.orchestrator_run_suffix }}
+          enterprise-version: ${{ inputs.enterprise_version }}
+          gradle-snapshot-init-script-path: ./gradle/specmatic-snapshots.init.gradle
+          docker-hub-username: ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }}
+          docker-hub-token: ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }}
+          setup-snapshot-docker-image: ${{ matrix.name == 'docker' && 'true' || 'false' }}
       # End: internal setup required by Specmatic.
 
       - name: Download Specmatic Enterprise Jar
