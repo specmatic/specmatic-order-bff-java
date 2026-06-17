@@ -63,11 +63,8 @@ jobs:
         uses: specmatic/specmatic-github-workflows/action-orchestrator-setup@main
         with:
           orchestrator-run-suffix: ${{ inputs.orchestrator_run_suffix }}
-          enterprise-version: ${{ inputs.enterprise_version }}
-          gradle-snapshot-init-script-path: ./gradle/specmatic-snapshots.init.gradle
           docker-hub-username: ${{ vars.SPECMATIC_DOCKER_HUB_USERNAME }}
           docker-hub-token: ${{ secrets.SPECMATIC_DOCKER_HUB_TOKEN }}
-          setup-snapshot-docker-image: ${{ matrix.name == 'docker' && 'true' || 'false' }}
       # End: internal setup required by Specmatic.
 
       - name: Download Specmatic Enterprise Jar
