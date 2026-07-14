@@ -38,7 +38,7 @@ class Products(@Autowired val orderBFFService: OrderBFFService) {
         }
     }
 
-    @PostMapping("/products", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping("/products", produces = [MediaType.APPLICATION_JSON_VALUE], consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun createProduct(@Valid @RequestBody newProduct: NewProduct): ResponseEntity<*> {
         return when (val productResponse = orderBFFService.createProduct(newProduct)) {
             is ProductResponse.ProductAdded -> ResponseEntity(productResponse, HttpStatus.CREATED)
