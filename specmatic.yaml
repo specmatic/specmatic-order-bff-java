@@ -42,7 +42,6 @@ components:
     specmaticOrderContracts:
       git:
         url: https://github.com/specmatic/specmatic-order-contracts.git
-        branch: missing-response-codes
   services:
     productSearchBffService:
       description: Product Search BFF Service
