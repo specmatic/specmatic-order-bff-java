@@ -1,0 +1,67 @@
+version: 3
+systemUnderTest:
+  service:
+    $ref: "#/components/services/productSearchBffService"
+    runOptions:
+      $ref: "#/components/runOptions/productSearchBffServiceTest"
+    data:
+      examples:
+        - directories:
+            - ./src/test/resources/bff
+dependencies:
+  services:
+    - service:
+        $ref: "#/components/services/orderApiService"
+        runOptions:
+          $ref: "#/components/runOptions/orderApiServiceMock"
+        data:
+          examples:
+            - directories:
+                - ./src/test/resources/domain_service
+
+  data:
+    adapters:
+      post_specmatic_response_processor: ./hooks/post_specmatic_response_processor.sh
+
+specmatic:
+  governance:
+    successCriteria:
+      minCoveragePercentage: 70
+      maxMissedOperationsInSpec: 1
+      enforce: true
+  settings:
+    test:
+      schemaResiliencyTests: all
+components:
+  sources:
+    specmaticOrderContracts:
+      git:
+        url: https://github.com/specmatic/specmatic-order-contracts.git
+  services:
+    productSearchBffService:
+      description: Product Search BFF Service
+      definitions:
+        - definition:
+            source:
+              $ref: "#/components/sources/specmaticOrderContracts"
+            specs:
+              - io/specmatic/examples/store/openapi/product_search_bff_v6.yaml
+    orderApiService:
+      description: Order API Service
+      definitions:
+        - definition:
+            source:
+              $ref: "#/components/sources/specmaticOrderContracts"
+            specs:
+              - io/specmatic/examples/store/openapi/api_order_v5.yaml
+  runOptions:
+    productSearchBffServiceTest:
+      openapi:
+        type: test
+        baseUrl: "{APP_URL:http://app:8080}"
+        filter: "PATH!='/health,/monitor/{id},/swagger'"
+        actuatorUrl: "{APP_URL:http://app:8080}/actuator/mappings"
+    orderApiServiceMock:
+      openapi:
+        type: mock
+        baseUrl: http://specmatic-mock:8090

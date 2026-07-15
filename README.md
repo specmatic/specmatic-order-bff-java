@@ -6,6 +6,7 @@ Table of Contents
   * [Background](#background)
   * [Tech](#tech)
   * [Run Contract Tests](#run-contract-tests)
+    * [Docker Compose with standalone Kafka](#docker-compose-with-standalone-kafka)
     * [1. Using Specmatic-JUnit Helper](#1-using-specmatic-junit-helper)
       * [View Specmatic Test Reports](#view-specmatic-test-reports)
     * [2. Using TestContainers](#2-using-testcontainers)
@@ -35,6 +36,72 @@ Following are the specifications used in this project:
 ## Run Contract Tests
 
 Our contract test will start the specmatic mock server for Domain API and Kafka mock using [specmatic config](src/test/resources/specmatic.yaml) and run contract tests against the BFF using Specmatic.
+
+### Docker Compose with standalone Kafka
+
+This repository also includes a Docker Compose setup that:
+
+* starts Specmatic mock for Domain API as `specmatic-mock`
+* starts a standalone Kafka broker in KRaft mode without ZooKeeper
+* creates Kafka topics required by the application
+* starts Kafka UI on port `8081`
+* starts the BFF application in Docker
+* runs Specmatic contract tests against the running BFF in a separate `specmatic-test` container
+
+The Docker Compose setup uses [specmatic-docker.yaml](specmatic-docker.yaml), which removes Specmatic's in-memory Kafka broker and retains only the Domain API stub.
+
+For **Unix based systems** and **Windows Powershell**:
+
+#### 1. Build the application jar
+```shell
+./gradlew assemble
+```
+
+#### 2. Start Kafka, Kafka UI, Specmatic mock and application
+```shell
+docker compose up -d --build specmatic-mock kafka kafka-init kafka-ui app
+```
+
+#### 3. Run contract tests
+```shell
+docker compose run --rm specmatic-test
+```
+
+#### 4. View Kafka messages
+Open `http://localhost:8081`
+
+#### 5. Stop and clean up
+```shell
+docker compose down -v
+```
+
+#### 6. View Specmatic test reports
+After running the test container, view the report at [build/reports/specmatic/test/html/index.html](build/reports/specmatic/test/html/index.html)
+
+For **Windows Command Prompt**:
+
+#### 1. Build the application jar
+```shell
+gradlew assemble
+```
+
+#### 2. Start Kafka, Kafka UI, Specmatic mock and application
+```shell
+docker compose up -d --build specmatic-mock kafka kafka-init kafka-ui app
+```
+
+#### 3. Run contract tests
+```shell
+docker compose run --rm specmatic-test
+```
+
+#### 4. View Kafka messages
+Open `http://localhost:8081`
+
+#### 5. Stop and clean up
+```shell
+docker compose down -v
+```
 
 ### 1. Using Specmatic-JUnit Helper
 
