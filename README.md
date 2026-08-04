@@ -62,21 +62,33 @@ For **Unix based systems** and **Windows Powershell**:
 docker compose up -d --build specmatic-mock kafka kafka-init kafka-ui app
 ```
 
-#### 3. Run contract tests
+#### 3. Start Kafka Spy (optional)
+Before running contract tests, you can start Kafka Spy in a separate terminal to monitor `product-queries` traffic and generate AsyncAPI schema output.
+
+```shell
+java -jar /Users/yogeshanandanikam/specmatic-kafka-spy/application/build/libs/specmatic-executable-2.48.1-SNAPSHOT-all-unobfuscated.jar kafka-spy --broker localhost:9092 --topic product-queries --probe-count 5 --sample-size 10 --offset latest
+```
+
+#### 4. Run contract tests
 ```shell
 docker compose run --rm specmatic-test
 ```
 
-#### 4. View Kafka messages
+#### 5. View Kafka messages
 Open `http://localhost:8081`
 
-#### 5. Stop and clean up
+#### 6. Stop Kafka Spy
+Stop the kafka spy. After you stop Kafka Spy, look for generated schemas in the [product-queries](product-queries) directory.
+
+#### 7. Generate the asyncapi spec from the schemas
+```shell
+java -jar /Users/yogeshanandanikam/specmatic-kafka-spy/application/build/libs/specmatic-executable-2.48.1-SNAPSHOT-all-unobfuscated.jar kafka-asyncapi product-queries --broker localhost:9092 --topic product-queries --operation send
+```
+
+#### 8. Stop and clean up
 ```shell
 docker compose down -v
 ```
-
-#### 6. View Specmatic test reports
-After running the test container, view the report at [build/reports/specmatic/test/html/index.html](build/reports/specmatic/test/html/index.html)
 
 For **Windows Command Prompt**:
 
@@ -90,15 +102,25 @@ gradlew assemble
 docker compose up -d --build specmatic-mock kafka kafka-init kafka-ui app
 ```
 
-#### 3. Run contract tests
+#### 3. Start Kafka Spy (optional)
+Before running contract tests, you can start Kafka Spy in a separate terminal to monitor `product-queries` traffic and generate AsyncAPI schema output.
+
+```shell
+java -jar /Users/yogeshanandanikam/specmatic-kafka-spy/application/build/libs/specmatic-executable-2.48.1-SNAPSHOT-all-unobfuscated.jar kafka-spy --broker localhost:9092 --topic product-queries --probe-count 60 --probe-duration-ms 30000 --sample-size 100
+```
+
+#### 4. Run contract tests
 ```shell
 docker compose run --rm specmatic-test
 ```
 
-#### 4. View Kafka messages
+#### 5. View Kafka messages
 Open `http://localhost:8081`
 
-#### 5. Stop and clean up
+#### 6. Stop Kafka Spy
+After you stop Kafka Spy, look for generated schemas in the [product-queries](product-queries) directory.
+
+#### 7. Stop and clean up
 ```shell
 docker compose down -v
 ```
