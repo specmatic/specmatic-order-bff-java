@@ -20,6 +20,24 @@ class ContractTestsUsingTestContainer {
         fun isNonCIOrLinux(): Boolean =
             System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
+        private fun getDefinedEnv(varName: String): Pair<String, String>? {
+            val value = System.getenv(varName)
+            return if (value != null) varName to value else null
+        }
+
+        private fun getGitHubEnvVars(): Map<String, String> =
+            listOfNotNull(
+                getDefinedEnv("GITHUB_ACTIONS"),
+                getDefinedEnv("GITHUB_REPOSITORY_ID"),
+                getDefinedEnv("GITHUB_REPOSITORY"),
+                getDefinedEnv("GITHUB_SERVER_URL"),
+                getDefinedEnv("GITHUB_HEAD_REF"),
+                getDefinedEnv("GITHUB_REF_NAME"),
+                getDefinedEnv("GITHUB_REF"),
+                getDefinedEnv("GITHUB_RUN_ID"),
+                getDefinedEnv("GITHUB_RUN_ATTEMPT")
+            ).toMap()
+
         private fun mockContainerWithSetExpectations(): GenericContainer<*> = object : GenericContainer<Nothing>(
                 "specmatic/enterprise"
         ) {
@@ -46,6 +64,8 @@ class ContractTestsUsingTestContainer {
                 .withNetworkMode("host")
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
+                .withEnv(getGitHubEnvVars())
+
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")
@@ -55,6 +75,7 @@ class ContractTestsUsingTestContainer {
                 .withFileSystemBind("./specmatic.yaml", "/usr/src/app/specmatic.yaml", BindMode.READ_ONLY)
                 .withFileSystemBind("./build/reports/specmatic", "/usr/src/app/build/reports/specmatic", BindMode.READ_WRITE)
                 .withNetworkMode("host")
+                .withEnv(getGitHubEnvVars())
                 .waitingFor(
                     Wait.forLogMessage(".*Tests run:.*", 1)
                         .withStartupTimeout(Duration.ofMinutes(2))

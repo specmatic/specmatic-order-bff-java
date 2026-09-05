@@ -128,27 +128,6 @@ jobs:
           echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
           echo "branch coverage = ${{ steps.jacoco.outputs.branches }}"
 
-      - name: Publish Build Reports to Specmatic Insights
-        if: ${{ github.ref == 'refs/heads/main' && inputs.orchestrator_run_suffix == '' }}
-        run: |
-          docker run \
-            --rm \
-            -e GIT_DISCOVERY_ACROSS_FILESYSTEM=1 \
-            -e GIT_CONFIG_COUNT=1 \
-            -e GIT_CONFIG_KEY_0=safe.directory \
-            -e GIT_CONFIG_VALUE_0=/usr/src/app \
-            -v "${{ github.workspace }}:/usr/src/app" \
-            -v "${HOME}/.specmatic:/root/.specmatic:ro" \
-            -w /usr/src/app \
-            specmatic/enterprise \
-            send-report \
-            --metadata build_url=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} \
-            --branch-name ${{ github.ref_name }} \
-            --repo-name ${{ github.event.repository.name }} \
-            --repo-id ${{ github.repository_id }} \
-            --repo-url ${{ github.event.repository.html_url }} \
-            --verbose
-
       - name: Upload HTML Test Report
         uses: actions/upload-artifact@v6
         with:
