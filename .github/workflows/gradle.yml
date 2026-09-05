@@ -146,7 +146,8 @@ jobs:
             --branch-name ${{ github.ref_name }} \
             --repo-name ${{ github.event.repository.name }} \
             --repo-id ${{ github.repository_id }} \
-            --repo-url ${{ github.event.repository.html_url }}
+            --repo-url ${{ github.event.repository.html_url }} \
+            --verbose
 
       - name: Upload HTML Test Report
         uses: actions/upload-artifact@v6
