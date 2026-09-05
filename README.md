@@ -1,6 +1,6 @@
 # Specmatic Sample: Spring Boot BFF calling Domain API
 
-Table of Contents
+Table of Contents 
 <!-- TOC -->
 * [Specmatic Sample: Spring Boot BFF calling Domain API](#specmatic-sample-spring-boot-bff-calling-domain-api)
   * [Background](#background)
