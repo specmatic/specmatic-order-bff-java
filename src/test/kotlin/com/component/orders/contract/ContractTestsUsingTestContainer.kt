@@ -20,23 +20,16 @@ class ContractTestsUsingTestContainer {
         fun isNonCIOrLinux(): Boolean =
             System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
-        private fun getDefinedEnv(varName: String): Pair<String, String>? {
-            val value = System.getenv(varName)
-            return if (value != null) varName to value else null
+        private fun hostId(option: String): String {
+            val process = ProcessBuilder("id", option).redirectErrorStream(true).start()
+            val output = process.inputStream.bufferedReader().use { it.readText() }.trim()
+            check(process.waitFor() == 0 && output.matches(Regex("\\d+"))) {
+                "Could not determine host identity using id $option: $output"
+            }
+            return output
         }
 
-        private fun getGitHubEnvVars(): Map<String, String> =
-            listOfNotNull(
-                getDefinedEnv("GITHUB_ACTIONS"),
-                getDefinedEnv("GITHUB_REPOSITORY_ID"),
-                getDefinedEnv("GITHUB_REPOSITORY"),
-                getDefinedEnv("GITHUB_SERVER_URL"),
-                getDefinedEnv("GITHUB_HEAD_REF"),
-                getDefinedEnv("GITHUB_REF_NAME"),
-                getDefinedEnv("GITHUB_REF"),
-                getDefinedEnv("GITHUB_RUN_ID"),
-                getDefinedEnv("GITHUB_RUN_ATTEMPT")
-            ).toMap()
+        private val hostUser = "${hostId("-u")}:${hostId("-g")}"
 
         private fun mockContainerWithSetExpectations(): GenericContainer<*> = object : GenericContainer<Nothing>(
                 "specmatic/enterprise"
@@ -55,33 +48,31 @@ class ContractTestsUsingTestContainer {
         @Container
         private val mockContainer: GenericContainer<*> =
             mockContainerWithSetExpectations()
+                .withEnv(System.getenv())
                 .withReuse(false)
                 .withCommand("mock", "--metadata=run_mode=docker")
-                .withFileSystemBind("${System.getProperty("user.home")}/.specmatic", "/root/.specmatic", BindMode.READ_ONLY)
+                .withFileSystemBind("${System.getProperty("user.home")}/.specmatic", "/specmatic", BindMode.READ_ONLY)
                 .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
                 .withWorkingDirectory("/usr/src/app")
-                .withEnv("GIT_CONFIG_COUNT", "1")
-                .withEnv("GIT_CONFIG_KEY_0", "safe.directory")
-                .withEnv("GIT_CONFIG_VALUE_0", "/usr/src/app")
+                .withCreateContainerCmdModifier { it.withUser(hostUser) }
+                .withEnv("SPECMATIC_LICENSE_PATH", "/specmatic/specmatic-license.txt")
                 .withNetworkMode("host")
                 .withEnv("JAVA_OPTS", "-Dspecmatic.logging.level=trace -Dspecmatic.logging.stdout.enabled=true")
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
-                .withEnv(getGitHubEnvVars())
 
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")
+                .withEnv(System.getenv())
                 .withCommand("test", "--metadata=run_mode=docker")
-                .withFileSystemBind("${System.getProperty("user.home")}/.specmatic", "/root/.specmatic", BindMode.READ_ONLY)
+                .withFileSystemBind("${System.getProperty("user.home")}/.specmatic", "/specmatic", BindMode.READ_ONLY)
                 .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
                 .withWorkingDirectory("/usr/src/app")
-                .withEnv("GIT_CONFIG_COUNT", "1")
-                .withEnv("GIT_CONFIG_KEY_0", "safe.directory")
-                .withEnv("GIT_CONFIG_VALUE_0", "/usr/src/app")
+                .withCreateContainerCmdModifier { it.withUser(hostUser) }
+                .withEnv("SPECMATIC_LICENSE_PATH", "/specmatic/specmatic-license.txt")
                 .withEnv("JAVA_OPTS", "-Dspecmatic.logging.level=trace -Dspecmatic.logging.stdout.enabled=true")
                 .withNetworkMode("host")
-                .withEnv(getGitHubEnvVars())
                 .waitingFor(
                     Wait.forLogMessage(".*Tests run:.*", 1)
                         .withStartupTimeout(Duration.ofMinutes(2))
