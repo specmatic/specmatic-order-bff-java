@@ -28,8 +28,9 @@ internal class SpecmaticExecutor(vararg args: String) {
                     "Please visit https://docs.specmatic.io/download/#specmatic-enterprise to fetch the jar."
             }
             val cmd = buildList {
-                add("java")
                 add("-jar")
+                add( "-Dspecmatic.logging.level=trace")
+                add( "-Dspecmatic.logging.stdout.enabled=true")
                 add(jarPath.toString())
                 addAll(args)
             }

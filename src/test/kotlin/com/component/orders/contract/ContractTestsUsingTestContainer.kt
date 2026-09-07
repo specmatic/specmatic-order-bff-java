@@ -63,6 +63,7 @@ class ContractTestsUsingTestContainer {
                 .withFileSystemBind("./specmatic.yaml", "/usr/src/app/specmatic.yaml", BindMode.READ_ONLY)
                 .withFileSystemBind("./build/reports/specmatic", "/usr/src/app/build/reports/specmatic", BindMode.READ_WRITE)
                 .withNetworkMode("host")
+                .withEnv("JAVA_OPTS", "-Dspecmatic.logging.level=trace -Dspecmatic.logging.stdout.enabled=true")
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
                 .withEnv(getGitHubEnvVars())
@@ -76,6 +77,7 @@ class ContractTestsUsingTestContainer {
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
                 .withFileSystemBind("./specmatic.yaml", "/usr/src/app/specmatic.yaml", BindMode.READ_ONLY)
                 .withFileSystemBind("./build/reports/specmatic", "/usr/src/app/build/reports/specmatic", BindMode.READ_WRITE)
+                .withEnv("JAVA_OPTS", "-Dspecmatic.logging.level=trace -Dspecmatic.logging.stdout.enabled=true")
                 .withNetworkMode("host")
                 .withEnv(getGitHubEnvVars())
                 .waitingFor(
