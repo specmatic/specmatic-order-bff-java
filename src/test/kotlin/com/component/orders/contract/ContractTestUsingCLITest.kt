@@ -21,8 +21,8 @@ class ContractTestUsingCLITest {
         fun isNonCIOrLinux(): Boolean =
             System.getenv("CI") != "true" || System.getProperty("os.name").lowercase().contains("linux")
 
-        private val mock: SpecmaticExecutor = SpecmaticExecutor("mock")
-        private val test: SpecmaticExecutor = SpecmaticExecutor("test")
+        private val mock: SpecmaticExecutor = SpecmaticExecutor("mock", "--metadata=run_mode=cli")
+        private val test: SpecmaticExecutor = SpecmaticExecutor("test", "--metadata=run_mode=cli")
 
         @JvmStatic
         @BeforeAll

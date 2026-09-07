@@ -56,7 +56,7 @@ class ContractTestsUsingTestContainer {
         private val mockContainer: GenericContainer<*> =
             mockContainerWithSetExpectations()
                 .withReuse(false)
-                .withCommand("mock")
+                .withCommand("mock", "--metadata=run_mode=docker")
                 .withFileSystemBind("${System.getProperty("user.home")}/.specmatic", "/root/.specmatic", BindMode.READ_ONLY)
                 .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)
@@ -70,7 +70,7 @@ class ContractTestsUsingTestContainer {
 
         private val testContainer: GenericContainer<*> =
             GenericContainer("specmatic/enterprise")
-                .withCommand("test")
+                .withCommand("test", "--metadata=run_mode=docker")
                 .withFileSystemBind("${System.getProperty("user.home")}/.specmatic", "/root/.specmatic", BindMode.READ_ONLY)
                 .withFileSystemBind(".", "/usr/src/app", BindMode.READ_WRITE)
                 .withFileSystemBind("./hooks", "/usr/src/app/hooks", BindMode.READ_ONLY)

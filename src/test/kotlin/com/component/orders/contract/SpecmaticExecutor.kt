@@ -9,7 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
-internal class SpecmaticExecutor(command: String) {
+internal class SpecmaticExecutor(vararg args: String) {
     private val builder: ProcessBuilder
     private val commandName: String
     private var process: Process? = null
@@ -19,8 +19,8 @@ internal class SpecmaticExecutor(command: String) {
     private val logs = StringBuilder(8192)
 
     init {
-        require(command.isNotBlank()) { "Which Specmatic command do you want to run?" }
-        commandName = "Specmatic-Enterprise $command"
+        require(args.isNotEmpty() && args.first().isNotBlank()) { "Which Specmatic command do you want to run?" }
+        commandName = "Specmatic-Enterprise ${args.joinToString(" ")}"
         try {
             val jarPath = Paths.get(System.getProperty("user.home"), ".specmatic", "specmatic-enterprise.jar")
             require(Files.isRegularFile(jarPath)) {
@@ -31,7 +31,7 @@ internal class SpecmaticExecutor(command: String) {
                 add("java")
                 add("-jar")
                 add(jarPath.toString())
-                add(command)
+                addAll(args)
             }
             builder = ProcessBuilder(cmd)
         } catch (e: Exception) {
