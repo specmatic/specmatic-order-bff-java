@@ -2,6 +2,7 @@
   "before": [
     {
       "type": "http",
+      "wait": "PT2S",
       "http-request": {
         "baseUrl": "http://localhost:9999",
         "path": "/_specmatic/snapshot",
