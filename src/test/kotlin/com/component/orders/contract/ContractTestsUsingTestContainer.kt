@@ -57,7 +57,6 @@ class ContractTestsUsingTestContainer {
                 .withCreateContainerCmdModifier { it.withUser(hostUser) }
                 .withEnv("SPECMATIC_LICENSE_PATH", "/specmatic/specmatic-license.txt")
                 .withNetworkMode("host")
-                .withEnv("JAVA_OPTS", "-Dspecmatic.logging.level=trace -Dspecmatic.logging.stdout.enabled=true")
                 .waitingFor(Wait.forHttp("/actuator/health").forStatusCode(200))
                 .withLogConsumer { print(it.utf8String) }
 
@@ -71,7 +70,6 @@ class ContractTestsUsingTestContainer {
                 .withWorkingDirectory("/usr/src/app")
                 .withCreateContainerCmdModifier { it.withUser(hostUser) }
                 .withEnv("SPECMATIC_LICENSE_PATH", "/specmatic/specmatic-license.txt")
-                .withEnv("JAVA_OPTS", "-Dspecmatic.logging.level=trace -Dspecmatic.logging.stdout.enabled=true")
                 .withNetworkMode("host")
                 .waitingFor(
                     Wait.forLogMessage(".*Tests run:.*", 1)
