@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
-import java.time.LocalDateTime
+import java.time.Instant
 
-data class ErrorResponse(val timestamp: LocalDateTime = LocalDateTime.now(), val status: Int, val error: String, val message: String)
+data class ErrorResponse(val timestamp: Instant = Instant.now(), val status: Int, val error: String, val message: String)
 
 @ControllerAdvice
 class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
@@ -49,7 +49,6 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): ResponseEntity<ErrorResponse> {
         val errorResponse = ErrorResponse(
-            timestamp = LocalDateTime.now(),
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             error = "Unexpected Error",
             message = ex.message ?: "An unexpected error occurred",
